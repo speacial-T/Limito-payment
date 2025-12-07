@@ -54,6 +54,7 @@ public class PaymentDto {
 
 	private String pgProvider;
 
+	@Builder.Default
 	private List<PaymentItemDto> items = new ArrayList<>();
 
 }

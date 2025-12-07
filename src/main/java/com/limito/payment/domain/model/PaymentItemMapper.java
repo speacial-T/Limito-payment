@@ -7,31 +7,36 @@ import com.limito.payment.domain.dto.PaymentItemDto;
 @Component
 public class PaymentItemMapper {
 
-	public PaymentItemDto toDomain(PaymentItemEntity entity) {
+	public PaymentItemDto toDto(PaymentItemEntity entity) {
+		if (entity == null)
+			return null;
+
 		return PaymentItemDto.builder()
 			.paymentItemId(entity.paymentItemId)
 			.sellerId(entity.sellerId)
 			.orderItemId(entity.orderItemId)
-			.productName(entity.productName)
-			.productPrice(entity.productPrice)
 			.productType(entity.productType)
-			.productAmount(entity.productAmount)
+			.productName(entity.productName)
+			.productPrice(entity.productPrice != null ? entity.productPrice : 0)
+			.productAmount(entity.productAmount != null ? entity.productAmount : 0)
 			.refundPrice(entity.refundPrice)
 			.status(entity.status)
-			// payment는 순환 참조 방지를 위해 제외
 			.build();
 	}
 
 	public PaymentItemEntity toEntity(PaymentItemDto dto) {
+		if (dto == null)
+			return null;
+
 		return new PaymentItemEntity(
 			dto.getPaymentItemId(),
-			null,  // Payment는 별도로 설정 (순환 참조 방지)
+			null, // payment는 순환 참조 방지를 위해 제외
 			dto.getSellerId(),
 			dto.getOrderItemId(),
 			dto.getProductName(),
-			dto.getProductPrice(),
+			Integer.valueOf(dto.getProductPrice()),
 			dto.getProductType(),
-			dto.getProductAmount(),
+			Integer.valueOf(dto.getProductAmount()),
 			dto.getRefundPrice(),
 			dto.getStatus()
 		);

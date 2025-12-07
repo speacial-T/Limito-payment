@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
-import com.limito.payment.domain.model.PaymentEntity;
 import com.limito.payment.presentation.dto.request.OrderItem;
 
 import lombok.AllArgsConstructor;
@@ -53,10 +52,6 @@ public class PaymentItemDto {
 			.productAmount(orderItem.getQuantity())
 			.status(PaymentStatusEnum.IN_PROGRESS)
 			.build();
-	}
-
-	public void assignPayment(PaymentEntity payment) {
-		this.payment = payment;
 	}
 
 	public void updateStatusBasedOnPayment(PaymentStatusEnum paymentStatus) {

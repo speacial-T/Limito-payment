@@ -84,10 +84,10 @@ public class PaymentEntity extends BaseEntity {
 	@Column(name = "pg_provider", length = 50)
 	String pgProvider;
 
-	@OneToMany(mappedBy = "payment", orphanRemoval = true)
+	@OneToMany(mappedBy = "payment")
+	@Builder.Default
 	List<PaymentItemEntity> items = new ArrayList<>();
 
-	// 도메인 로직: 결제 생성
 	public static PaymentEntity create(UUID orderId, String itemSummary, Integer totalPrice) {
 		return new PaymentEntity(
 			null, orderId, PaymentStatusEnum.IN_PROGRESS,
@@ -95,6 +95,17 @@ public class PaymentEntity extends BaseEntity {
 			null, null, null, null, null,
 			null, null, null, null, new ArrayList<>()
 		);
+	}
+
+	public UUID internalId() {
+		return this.paymentId;
+	}
+
+	public void addItems(List<PaymentItemEntity> newItems) {
+		newItems.forEach(item -> {
+			this.items.add(item);
+			item.assignPayment(this);
+		});
 	}
 
 	public void handlePgCallback(PaymentDto extra) {

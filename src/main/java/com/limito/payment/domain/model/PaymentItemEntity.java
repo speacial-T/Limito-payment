@@ -73,8 +73,9 @@ public class PaymentItemEntity extends BaseEntity {
 		);
 	}
 
-	public void assignToPayment(PaymentEntity payment) {
+	public void assignPayment(PaymentEntity payment) {
 		this.payment = payment;
+		this.payment.paymentId = payment.paymentId;
 	}
 
 	public void updateStatus(PaymentStatusEnum status) {
