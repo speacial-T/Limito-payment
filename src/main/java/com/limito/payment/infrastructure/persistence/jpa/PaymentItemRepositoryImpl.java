@@ -2,12 +2,10 @@ package com.limito.payment.infrastructure.persistence.jpa;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.limito.payment.domain.dto.PaymentItemDto;
 import com.limito.payment.domain.model.PaymentItemEntity;
 import com.limito.payment.domain.model.PaymentItemMapper;
 import com.limito.payment.domain.model.PaymentMapper;
@@ -25,26 +23,20 @@ public class PaymentItemRepositoryImpl implements PaymentItemRepository {
 
 	@Transactional
 	@Override
-	public List<PaymentItemDto> saveAll(List<PaymentItemDto> orderItems) {
-		List<PaymentItemEntity> entities = orderItems.stream()
-			.map(itemMapper::toEntity)
-			.collect(Collectors.toList());
-
-		paymentItemJpaRepository.saveAll(entities);
+	public List<PaymentItemEntity> saveAll(List<PaymentItemEntity> orderItems) {
+		paymentItemJpaRepository.saveAll(orderItems);
 		return orderItems;
 	}
 
 	@Transactional(readOnly = true)
 	@Override
-	public List<PaymentItemDto> getPaymentItems(UUID paymentId) {
+	public List<PaymentItemEntity> getPaymentItems(UUID paymentId) {
 		List<PaymentItemEntity> paymentItems = paymentItemJpaRepository.findAllByPaymentPaymentId(paymentId);
 
 		if (paymentItems.isEmpty()) {
 			throw new IllegalArgumentException("No payment items found for paymentId: " + paymentId);
 		}
-		return paymentItems.stream()
-			.map(itemMapper::toDomain)
-			.collect(Collectors.toList());
+		return paymentItems;
 	}
 
 }

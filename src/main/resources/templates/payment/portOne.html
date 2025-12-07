@@ -2,11 +2,11 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <link rel="icon" type="image/png" th:href="@{/favicon.png}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/portOne.css}"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" th:href="@{/favicon.png}" type="image/png"/>
+    <link rel="stylesheet" th:href="@{/portOne.css}" type="text/css"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>포트원 결제연동 샘플</title>
-    <script src="https://cdn.portone.io/v2/browser-sdk.js" async defer></script>
+    <script async defer src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 </head>
 <body>
 <div id="root">
@@ -23,7 +23,7 @@
                 </div>
                 <div class="price">
                     <label>총 구입 가격</label>
-                    <span id="totalPriceValue" class="price-value"></span>
+                    <span class="price-value" id="totalPriceValue"></span>
                 </div>
             </article>
             <button id="checkoutButton" type="submit">결제</button>
@@ -34,24 +34,16 @@
             <h1>결제 실패</h1>
         </header>
         <p id="failMessage"></p>
-        <button type="button" class="closeDialog">닫기</button>
+        <button class="closeDialog" type="button">닫기</button>
     </dialog>
     <dialog id="successDialog">
         <header>
             <h1>결제 성공</h1>
         </header>
         <p>결제에 성공했습니다.</p>
-        <button type="button" class="closeDialog">닫기</button>
-    </dialog>
-    <dialog id="virtualAccountDialog">
-        <header>
-            <h1>가상계좌 발급 완료</h1>
-        </header>
-        <p>가상계좌가 발급되었습니다.</p>
-        <button type="button" class="closeDialog">닫기</button>
+        <button class="closeDialog" type="button">닫기</button>
     </dialog>
 </div>
-<!--<script src="/config.js"></script>-->
 <script th:inline="javascript">
     const orderId = '[[${orderId}]]';
     const itemSummary = '[[${itemSummary}]]';
@@ -64,17 +56,16 @@
     console.log("channelKey :", channelKey);
     console.log("storeId :", storeId);
     const checkout = new Checkout(
-        storeId, // 상점 ID
-        channelKey, // 채널 키
+        storeId,
+        channelKey,
     )
     checkout.load()
 
     function Checkout(storeId, channelKey) {
-        // 목업 데이터 대신 서버에서 전달된 데이터 사용
         const orderData = {
             orderId: orderId,
             itemSummary: itemSummary,
-            items: items, // 파싱된 배열 사용
+            items: items,
             totalPrice: totalPrice,
         };
 
@@ -88,7 +79,6 @@
                 }, 50)
             })
 
-            // 목업 데이터 로딩 대기 코드를 제거하고 PortOne 로딩만 기다립니다.
             await Promise.all([waitPortOne])
 
             window.loadingDialog.open = false

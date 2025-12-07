@@ -50,13 +50,13 @@ public class PaymentControllerV1 {
 	}
 
 	@PostMapping("/{paymentId}/confirm")
-	public ResponseEntity<ConfirmPaymentResponseV1> confirmPayment(
+	public ResponseEntity<PaymentDto> confirmPayment(
 		@PathVariable("paymentId") String paymentId,
 		@RequestBody ConfirmPaymentResponseV1 response
 	) {
 		log.info("PaymentControllerV1.confirmPayment called paymentKey={}, response= {}", paymentId, response);
-		response = paymentService.confirmPayment(paymentId, response);
+		PaymentDto result = paymentService.confirmPayment(paymentId, response);
 
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(result);
 	}
 }
