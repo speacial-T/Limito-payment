@@ -1,7 +1,9 @@
 package com.limito.payment.presentation.dto.response;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 
 import lombok.AllArgsConstructor;
@@ -17,10 +19,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @Builder
 @ToString
-public class PortOneConfirmPaymentResponse {
+public class PaymentConfirmResponseDtoV1 {
 	private UUID orderId;
-	private String paymentKey;
-	private PaymentStatusEnum paymentStatus;
-	private int amount;
-	private String confirmedAt;
+	private PaymentStatusEnum paymentStatus; // SUCCESS / FAILED
+	private PaymentMethodEnum paymentMethod;
+	private LocalDateTime approvedAt;        // 승인 시각
 }

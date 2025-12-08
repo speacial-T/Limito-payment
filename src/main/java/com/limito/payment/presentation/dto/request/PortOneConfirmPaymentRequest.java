@@ -3,6 +3,8 @@ package com.limito.payment.presentation.dto.request;
 import java.util.List;
 import java.util.UUID;
 
+import com.limito.payment.infrastructure.dto.request.OrderItem;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
