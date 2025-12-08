@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.limito.payment.domain.dto.PaymentDto;
+import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class PortOnePaymentMapper {
 
 	private final ObjectMapper objectMapper;
 
-	public PaymentDto extractExtraInfo(String json) {
+	public PaymentDetailDtoV1 extractExtraInfo(String json) {
 		try {
 			JsonNode root = objectMapper.readTree(json);
 
@@ -42,7 +42,7 @@ public class PortOnePaymentMapper {
 				approvedAt = ZonedDateTime.parse(paidAtNode.asText()).toLocalDateTime();
 			}
 
-			return PaymentDto.builder()
+			return PaymentDetailDtoV1.builder()
 				.paymentStatus(convertStatus(status))
 				.paymentKey(paymentKey)
 				.cardName(cardName)

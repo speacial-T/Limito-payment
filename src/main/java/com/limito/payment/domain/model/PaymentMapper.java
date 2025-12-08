@@ -1,11 +1,16 @@
 package com.limito.payment.domain.model;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.limito.payment.domain.dto.PaymentDto;
+import com.limito.payment.domain.dto.PaymentDetailDtoV1;
+import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
+import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,7 +20,16 @@ public class PaymentMapper {
 
 	private final PaymentItemMapper itemMapper;
 
-	public PaymentEntity toEntity(PaymentDto dto) {
+	public static PaymentEntity create(UUID orderId, CreatePaymentRequestV1 request) {
+		return new PaymentEntity(
+			null, orderId, PaymentStatusEnum.IN_PROGRESS,
+			null, request.getItemSummary(), request.getTotalPrice(),
+			null, null, null, null, null,
+			null, null, null, null, new ArrayList<>()
+		);
+	}
+
+	public PaymentEntity toEntity(PaymentDetailDtoV1 dto) {
 		if (dto == null)
 			return null;
 
@@ -52,11 +66,11 @@ public class PaymentMapper {
 		return entity;
 	}
 
-	public PaymentDto toDto(PaymentEntity entity) {
+	public PaymentDetailDtoV1 toDto(PaymentEntity entity) {
 		if (entity == null)
 			return null;
 
-		PaymentDto.PaymentDtoBuilder builder = PaymentDto.builder()
+		PaymentDetailDtoV1.PaymentDetailDtoV1Builder builder = PaymentDetailDtoV1.builder()
 			.paymentId(entity.paymentId)
 			.orderId(entity.orderId)
 			.paymentStatus(entity.paymentStatus)
@@ -75,7 +89,7 @@ public class PaymentMapper {
 
 		// items 매핑
 		if (entity.items != null && !entity.items.isEmpty()) {
-			List<com.limito.payment.domain.dto.PaymentItemDto> itemDtos =
+			List<PaymentItemDetailDtoV1> itemDtos =
 				entity.items.stream()
 					.filter(java.util.Objects::nonNull)
 					.map(itemMapper::toDto)

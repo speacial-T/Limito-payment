@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
-import com.limito.payment.presentation.dto.request.OrderItem;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,11 +18,11 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class PaymentItemDto {
+public class PaymentItemDetailDtoV1 {
 
 	private UUID paymentItemId;
 
-	private PaymentDto payment;
+	private PaymentDetailDtoV1 payment;
 
 	private Long sellerId;
 
@@ -40,19 +39,6 @@ public class PaymentItemDto {
 	private Integer refundPrice;
 
 	private PaymentStatusEnum status;
-
-	public static PaymentItemDto mapToPaymentItem(OrderItem orderItem) {
-
-		return PaymentItemDto.builder()
-			.sellerId(orderItem.getSellerId())
-			.orderItemId(orderItem.getOptionId())
-			.productType(orderItem.getProductType())
-			.productName(orderItem.getProductName())
-			.productPrice(orderItem.getProductPrice())
-			.productAmount(orderItem.getQuantity())
-			.status(PaymentStatusEnum.IN_PROGRESS)
-			.build();
-	}
 
 	public void updateStatusBasedOnPayment(PaymentStatusEnum paymentStatus) {
 		this.status = paymentStatus;

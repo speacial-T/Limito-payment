@@ -22,7 +22,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class PaymentDto {
+public class PaymentDetailDtoV1 {
 
 	private UUID paymentId;
 
@@ -55,6 +55,6 @@ public class PaymentDto {
 	private String pgProvider;
 
 	@Builder.Default
-	private List<PaymentItemDto> items = new ArrayList<>();
+	private List<PaymentItemDetailDtoV1> items = new ArrayList<>();
 
 }

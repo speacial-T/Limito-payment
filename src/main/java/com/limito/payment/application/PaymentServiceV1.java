@@ -42,12 +42,13 @@ public class PaymentServiceV1 {
 		UUID orderId
 	) {
 		PortOneConfirmPaymentRequest request = new PortOneConfirmPaymentRequest();
-		PaymentDto payment = paymentMapper.toDto(paymentRepository.getByOrderId(orderId));
+		PaymentDetailDtoV1 payment = paymentMapper.toDto(paymentRepository.getByOrderId(orderId));
 
-		List<PaymentItemDto> paymentItems = paymentItemRepository.getPaymentItems(payment.getPaymentId())
+		List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(payment.getPaymentId())
 			.stream()
 			.map(paymentItemMapper::toDto)
 			.toList();
+
 		List<OrderItem> items = paymentItems.stream()
 			.map(p -> OrderItem.builder()
 				.productName(p.getProductName())
@@ -72,16 +73,15 @@ public class PaymentServiceV1 {
 	@Transactional
 	public void createPayment(UUID orderId, CreatePaymentRequestV1 request) {
 		log.info("received createPayment for orderId={}, request={}", orderId, request);
-		List<PaymentItemDto> paymentItems = request.getItems().stream()
-			.map(PaymentItemDto::mapToPaymentItem)
+		List<PaymentItemDetailDtoV1> paymentItems = request.getItems().stream()
+			.map(paymentItemMapper::mapToPaymentItem)
 			.toList();
 		log.debug("mapped paymentItems={}", paymentItems);
-		PaymentEntity payment = PaymentEntity.create(orderId, request.getItemSummary(), request.getTotalPrice());
-
+		PaymentEntity payment = PaymentMapper.create(orderId, request);
 		PaymentEntity savedPayment = paymentRepository.save(payment);
 
-		List<PaymentItemDto> itemDtos = request.getItems().stream()
-			.map(PaymentItemDto::mapToPaymentItem)
+		List<PaymentItemDetailDtoV1> itemDtos = request.getItems().stream()
+			.map(paymentItemMapper::mapToPaymentItem)
 			.toList();
 
 		List<PaymentItemEntity> itemEntities = itemDtos.stream()
@@ -93,7 +93,7 @@ public class PaymentServiceV1 {
 	}
 
 	@Transactional
-	public PaymentDto confirmPayment(
+	public PaymentDetailDtoV1 confirmPayment(
 		String paymentKey,
 		ConfirmPaymentResponseV1 response
 	) {
@@ -105,9 +105,9 @@ public class PaymentServiceV1 {
 		}
 
 		String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
-		PaymentDto extra = portOnePaymentMapper.extractExtraInfo(rawJson);
+		PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
 
-		// 결제 완료/실패등 상태 반영
+		// 결제 완료/실패 등 상태 반영
 		payment.handlePgCallback(extra);
 		paymentRepository.save(payment);
 		List<PaymentItemEntity> items =
@@ -121,7 +121,7 @@ public class PaymentServiceV1 {
 		});
 
 		paymentItemRepository.saveAll(items);
-		PaymentDto result = paymentMapper.toDto(payment);
+		PaymentDetailDtoV1 result = paymentMapper.toDto(payment);
 		return result;
 	}
 }

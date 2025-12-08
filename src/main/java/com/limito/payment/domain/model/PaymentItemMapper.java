@@ -2,16 +2,31 @@ package com.limito.payment.domain.model;
 
 import org.springframework.stereotype.Component;
 
-import com.limito.payment.domain.dto.PaymentItemDto;
+import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
+import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.presentation.dto.request.OrderItem;
 
 @Component
 public class PaymentItemMapper {
 
-	public PaymentItemDto toDto(PaymentItemEntity entity) {
+	public PaymentItemDetailDtoV1 mapToPaymentItem(OrderItem orderItem) {
+
+		return PaymentItemDetailDtoV1.builder()
+			.sellerId(orderItem.getSellerId())
+			.orderItemId(orderItem.getOptionId())
+			.productType(orderItem.getProductType())
+			.productName(orderItem.getProductName())
+			.productPrice(orderItem.getProductPrice())
+			.productAmount(orderItem.getQuantity())
+			.status(PaymentStatusEnum.IN_PROGRESS)
+			.build();
+	}
+
+	public PaymentItemDetailDtoV1 toDto(PaymentItemEntity entity) {
 		if (entity == null)
 			return null;
 
-		return PaymentItemDto.builder()
+		return PaymentItemDetailDtoV1.builder()
 			.paymentItemId(entity.paymentItemId)
 			.sellerId(entity.sellerId)
 			.orderItemId(entity.orderItemId)
@@ -24,7 +39,7 @@ public class PaymentItemMapper {
 			.build();
 	}
 
-	public PaymentItemEntity toEntity(PaymentItemDto dto) {
+	public PaymentItemEntity toEntity(PaymentItemDetailDtoV1 dto) {
 		if (dto == null)
 			return null;
 

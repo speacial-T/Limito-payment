@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.limito.common.audit.BaseEntity;
-import com.limito.payment.domain.dto.PaymentDto;
+import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
@@ -88,15 +88,6 @@ public class PaymentEntity extends BaseEntity {
 	@Builder.Default
 	List<PaymentItemEntity> items = new ArrayList<>();
 
-	public static PaymentEntity create(UUID orderId, String itemSummary, Integer totalPrice) {
-		return new PaymentEntity(
-			null, orderId, PaymentStatusEnum.IN_PROGRESS,
-			null, itemSummary, totalPrice,
-			null, null, null, null, null,
-			null, null, null, null, new ArrayList<>()
-		);
-	}
-
 	public UUID internalId() {
 		return this.paymentId;
 	}
@@ -108,7 +99,7 @@ public class PaymentEntity extends BaseEntity {
 		});
 	}
 
-	public void handlePgCallback(PaymentDto extra) {
+	public void handlePgCallback(PaymentDetailDtoV1 extra) {
 		if (extra.getPaymentKey() != null)
 			this.paymentKey = extra.getPaymentKey();
 		if (extra.getPaymentStatus() != null)
