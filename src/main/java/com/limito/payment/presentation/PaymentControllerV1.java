@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.limito.payment.application.PaymentServiceV1;
+import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
@@ -58,5 +59,13 @@ public class PaymentControllerV1 {
 		PaymentConfirmResponseDtoV1 result = paymentService.confirmPayment(paymentId, response);
 
 		return ResponseEntity.ok(result);
+	}
+
+	@GetMapping("/{orderId}")
+	public ResponseEntity<PaymentDetailDtoV1> getPaymentByOrderId(
+		@PathVariable("orderId") String orderId
+	) {
+		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(UUID.fromString(orderId));
+		return ResponseEntity.ok(paymentDto);
 	}
 }

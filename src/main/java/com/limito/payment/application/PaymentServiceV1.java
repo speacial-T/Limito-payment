@@ -141,4 +141,9 @@ public class PaymentServiceV1 {
 			.build();
 		return result;
 	}
+
+	@Transactional(readOnly = true)
+	public PaymentDetailDtoV1 getPaymentInfoByOrderId(UUID orderId) {
+		return paymentMapper.toDto(paymentRepository.getByOrderId(orderId));
+	}
 }
