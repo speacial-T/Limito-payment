@@ -1,13 +1,16 @@
 package com.limito.payment.application;
 
+import static com.limito.payment.domain.exception.PaymentErrorCode.*;
+
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.limito.payment.domain.dto.PaymentDto;
-import com.limito.payment.domain.dto.PaymentItemDto;
+import com.limito.common.exception.AppException;
+import com.limito.payment.domain.dto.PaymentDetailDtoV1;
+import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.model.PaymentEntity;
 import com.limito.payment.domain.model.PaymentItemEntity;
 import com.limito.payment.domain.model.PaymentItemMapper;
@@ -16,7 +19,7 @@ import com.limito.payment.domain.repository.PaymentItemRepository;
 import com.limito.payment.domain.repository.PaymentRepository;
 import com.limito.payment.infrastructure.client.portone.PortOneClient;
 import com.limito.payment.infrastructure.client.portone.mapper.PortOnePaymentMapper;
-import com.limito.payment.presentation.dto.request.CreatePaymentRequestV1;
+import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 import com.limito.payment.presentation.dto.request.OrderItem;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
@@ -57,6 +60,7 @@ public class PaymentServiceV1 {
 				.sellerId(p.getSellerId())
 				.build())
 			.toList();
+
 		request.setOrderId(orderId);
 		request.setItemSummary(payment.getItemSummary());
 		request.setItems(items);
@@ -64,9 +68,15 @@ public class PaymentServiceV1 {
 		return request;
 	}
 
-	public void validatePaymentRequestUniqueness(UUID orderId) {
+	public void validPaymentRequest(UUID orderId, CreatePaymentRequestV1 request) {
 		if (paymentRepository.hasPaymentByOrderId(orderId)) {
-			throw new IllegalArgumentException("Payment already exists for orderId: " + orderId);
+			throw new AppException(PAYMENT_DUPLICATE_ORDER);
+		}
+		int totalCalculatedPrice = request.getItems().stream()
+			.mapToInt(item -> item.getProductPrice() * item.getQuantity())
+			.sum();
+		if (request.getTotalPrice() != totalCalculatedPrice) {
+			throw new AppException(PAYMENT_TOTAL_PRICE_ERROR);
 		}
 	}
 
@@ -87,8 +97,7 @@ public class PaymentServiceV1 {
 		List<PaymentItemEntity> itemEntities = itemDtos.stream()
 			.map(paymentItemMapper::toEntity)
 			.toList();
-		payment.addItems(itemEntities);
-
+		savedPayment.addItems(itemEntities);
 		paymentItemRepository.saveAll(itemEntities);
 	}
 
@@ -101,7 +110,7 @@ public class PaymentServiceV1 {
 		UUID orderId = UUID.fromString(response.getOrderId());
 		PaymentEntity payment = paymentRepository.getByOrderId(orderId);
 		if (payment == null) {
-			throw new IllegalStateException("PaymentEntity not found for orderId=" + orderId);
+			throw new AppException(PAYMENT_NOT_FOUND);
 		}
 
 		String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);

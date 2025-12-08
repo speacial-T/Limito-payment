@@ -1,10 +1,13 @@
 package com.limito.payment.infrastructure.persistence.jpa;
 
+import static com.limito.payment.domain.exception.PaymentErrorCode.*;
+
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.limito.common.exception.AppException;
 import com.limito.payment.domain.model.PaymentEntity;
 import com.limito.payment.domain.repository.PaymentRepository;
 
@@ -21,7 +24,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 	@Override
 	public PaymentEntity getByOrderId(UUID orderId) {
 		return paymentJpaRepository.findByOrderIdAndDeletedAtIsNull(orderId)
-			.orElseThrow(() -> new IllegalArgumentException("Payment not found for orderId: " + orderId));
+			.orElseThrow(() -> new AppException(PAYMENT_NOT_FOUND));
 
 	}
 
@@ -29,12 +32,6 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 	@Override
 	public PaymentEntity save(PaymentEntity payment) {
 		return paymentJpaRepository.save(payment);
-	}
-
-	public PaymentEntity findById(UUID paymentId) {
-		PaymentEntity paymentEntity = paymentJpaRepository.findById(paymentId)
-			.orElseThrow(() -> new IllegalArgumentException("Payment not found for paymentId: " + paymentId));
-		return paymentEntity;
 	}
 
 	@Override
