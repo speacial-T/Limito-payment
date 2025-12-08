@@ -91,8 +91,4 @@ public class PaymentItemEntity extends BaseEntity {
 		this.refundPrice = refundAmount;
 		this.status = PaymentStatusEnum.CANCELED;
 	}
-
-	public int totalPrice() {
-		return productPrice * productAmount;
-	}
 }

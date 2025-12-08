@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
-import com.limito.payment.presentation.dto.request.OrderItem;
+import com.limito.payment.infrastructure.dto.request.OrderItem;
 
 @Component
 public class PaymentItemMapper {

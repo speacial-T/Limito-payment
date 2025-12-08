@@ -20,9 +20,10 @@ import com.limito.payment.domain.repository.PaymentRepository;
 import com.limito.payment.infrastructure.client.portone.PortOneClient;
 import com.limito.payment.infrastructure.client.portone.mapper.PortOnePaymentMapper;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
-import com.limito.payment.presentation.dto.request.OrderItem;
+import com.limito.payment.infrastructure.dto.request.OrderItem;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
+import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,8 @@ public class PaymentServiceV1 {
 	@Transactional
 	public void createPayment(UUID orderId, CreatePaymentRequestV1 request) {
 		log.info("received createPayment for orderId={}, request={}", orderId, request);
-		List<PaymentItemDetailDtoV1> paymentItems = request.getItems().stream()
+		List<PaymentItemDetailDtoV1> paymentItems = request.getItems()
+			.stream()
 			.map(paymentItemMapper::mapToPaymentItem)
 			.toList();
 		log.debug("mapped paymentItems={}", paymentItems);
@@ -102,7 +104,7 @@ public class PaymentServiceV1 {
 	}
 
 	@Transactional
-	public PaymentDetailDtoV1 confirmPayment(
+	public PaymentConfirmResponseDtoV1 confirmPayment(
 		String paymentKey,
 		ConfirmPaymentResponseV1 response
 	) {
@@ -130,7 +132,13 @@ public class PaymentServiceV1 {
 		});
 
 		paymentItemRepository.saveAll(items);
-		PaymentDetailDtoV1 result = paymentMapper.toDto(payment);
+		PaymentDetailDtoV1 paymentDetail = paymentMapper.toDto(payment);
+		PaymentConfirmResponseDtoV1 result = PaymentConfirmResponseDtoV1.builder()
+			.orderId(paymentDetail.getOrderId())
+			.paymentStatus(paymentDetail.getPaymentStatus())
+			.paymentMethod(paymentDetail.getPaymentMethod())
+			.approvedAt(paymentDetail.getApprovedAt())
+			.build();
 		return result;
 	}
 }

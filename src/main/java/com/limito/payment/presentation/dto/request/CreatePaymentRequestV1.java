@@ -2,6 +2,8 @@ package com.limito.payment.presentation.dto.request;
 
 import java.util.List;
 
+import com.limito.payment.infrastructure.dto.request.OrderItem;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

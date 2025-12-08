@@ -112,6 +112,8 @@ public class PaymentEntity extends BaseEntity {
 			this.failLog = extra.getFailLog();
 		if (extra.getApprovedAt() != null)
 			this.approvedAt = extra.getApprovedAt();
+		if (extra.getRefundAt() != null)
+			this.refundAt = extra.getRefundAt();
 	}
 
 	private void validateCanApprove() {
