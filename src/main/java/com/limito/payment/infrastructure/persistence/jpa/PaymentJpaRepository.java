@@ -11,11 +11,17 @@ import com.limito.payment.domain.model.PaymentEntity;
 
 public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, UUID> {
 
-	Optional<PaymentEntity> findByOrderIdAndDeletedAtIsNull(UUID orderId);
+	Optional<PaymentEntity> findByOrderId(UUID orderId);
+
+	boolean existsByOrderId(UUID orderId);
+
+	@Query("SELECT p FROM PaymentEntity p JOIN FETCH p.items WHERE p.orderId = :orderId")
+	Optional<PaymentEntity> findByOrderIdWithItems(@Param("orderId") UUID orderId);
+	/*Optional<PaymentEntity> findByOrderIdAndDeletedAtIsNull(UUID orderId);
 
 	boolean existsByOrderIdAndDeletedAtIsNull(UUID orderId);
 
 	@Query("SELECT p FROM PaymentEntity p JOIN FETCH p.items WHERE p.orderId = :orderId")
-	Optional<PaymentEntity> findByOrderIdWithItems(@Param("orderId") UUID orderId);
+	Optional<PaymentEntity> findByOrderIdWithItems(@Param("orderId") UUID orderId);*/
 
 }

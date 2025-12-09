@@ -23,7 +23,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 	@Transactional(readOnly = true)
 	@Override
 	public PaymentEntity getByOrderId(UUID orderId) {
-		return paymentJpaRepository.findByOrderIdAndDeletedAtIsNull(orderId)
+		return paymentJpaRepository.findByOrderIdWithItems(orderId)
 			.orElseThrow(() -> new AppException(PAYMENT_NOT_FOUND));
 
 	}
@@ -36,7 +36,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
 	@Override
 	public boolean hasPaymentByOrderId(UUID orderId) {
-		return paymentJpaRepository.existsByOrderIdAndDeletedAtIsNull(orderId);
+		return paymentJpaRepository.existsByOrderId(orderId);
 	}
 
 }

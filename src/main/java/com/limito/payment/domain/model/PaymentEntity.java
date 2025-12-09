@@ -35,6 +35,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class PaymentEntity {
+	// public class PaymentEntity extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -110,6 +111,10 @@ public class PaymentEntity {
 			this.cardName = extra.getCardName();
 		if (extra.getPgProvider() != null)
 			this.pgProvider = extra.getPgProvider();
+		if (extra.getCardNum() != null)
+			this.cardNum = extra.getCardNum();
+		if (extra.getPaymentMethod() != null)
+			this.paymentMethod = extra.getPaymentMethod();
 		if (extra.getFailLog() != null)
 			this.failLog = extra.getFailLog();
 		if (extra.getApprovedAt() != null)
@@ -140,16 +145,11 @@ public class PaymentEntity {
 		this.failLog = failLog;
 	}
 
-	public void refund(String refundReason) {
+	public void cancelAndRefund(String refundReason, LocalDateTime refundAt,
+		CancelAndRefundStatusEnum cancelAndRefundStatus) {
 		this.refundReason = refundReason;
-		this.cancelAndRefundStatus = CancelAndRefundStatusEnum.REFUND;
-		this.refundAt = LocalDateTime.now();
-	}
-
-	public void cancel(String refundReason) {
-		this.refundReason = refundReason;
-		this.cancelAndRefundStatus = CancelAndRefundStatusEnum.CANCEL;
-		this.refundAt = LocalDateTime.now();
+		this.cancelAndRefundStatus = cancelAndRefundStatus;
+		this.refundAt = refundAt;
 	}
 
 	public void updatePaymentStatus(PaymentStatusEnum paymentStatus) {
