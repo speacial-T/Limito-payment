@@ -46,5 +46,5 @@ logging:
   level:
     com.limito.payment: INFO
     #    org.springframework.web: error
-    #    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: DEBUG

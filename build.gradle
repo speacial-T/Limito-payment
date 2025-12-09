@@ -40,7 +40,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-    implementation 'com.github.speacial-T:common:v0.0.1'
+    implementation 'com.github.speacial-T:Limito-common:v1.1.2'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'

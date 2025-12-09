@@ -1,37 +1,44 @@
-package com.limito.payment.domain.model;
+package com.limito.payment.domain.dto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.limito.payment.domain.enums.CancelStatusEnum;
+import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Payment {
+@Getter
+@Setter
+@ToString
+public class PaymentDetailDtoV1 {
 
 	private UUID paymentId;
 
 	private UUID orderId;
 
-	private PaymentStatusEnum status;
+	private PaymentStatusEnum paymentStatus;
 
 	private String paymentKey;
 
-	private Integer totalPrice;
+	private String itemSummary;
+
+	private int totalPrice;
 
 	private String refundReason;
 
-	private CancelStatusEnum cancelStatus;
+	private CancelAndRefundStatusEnum cancelAndRefundStatus;
 
 	private LocalDateTime approvedAt;
 
@@ -41,10 +48,13 @@ public class Payment {
 
 	private PaymentMethodEnum paymentMethod;
 
-	private String cardLastNum;
+	private String cardNum;
 
 	private String cardName;
 
 	private String pgProvider;
-	private List<PaymentItem> items = new ArrayList<>();
+
+	@Builder.Default
+	private List<PaymentItemDetailDtoV1> items = new ArrayList<>();
+
 }
