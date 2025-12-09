@@ -2,7 +2,6 @@ package com.limito.payment.domain.model;
 
 import java.util.UUID;
 
-import com.limito.common.audit.BaseEntity;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
 
@@ -27,7 +26,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-public class PaymentItemEntity extends BaseEntity {
+public class PaymentItemEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)

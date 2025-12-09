@@ -71,12 +71,15 @@ public class PaymentServiceV1 {
 
 	public void validPaymentRequest(UUID orderId, CreatePaymentRequestV1 request) {
 		if (paymentRepository.hasPaymentByOrderId(orderId)) {
+			log.warn("Duplicate payment request for orderId={}", orderId);
 			throw new AppException(PAYMENT_DUPLICATE_ORDER);
 		}
 		int totalCalculatedPrice = request.getItems().stream()
 			.mapToInt(item -> item.getProductPrice() * item.getQuantity())
 			.sum();
 		if (request.getTotalPrice() != totalCalculatedPrice) {
+			log.warn("Payment total price mismatch for orderId={}: expected={}, actual={}",
+				orderId, totalCalculatedPrice, request.getTotalPrice());
 			throw new AppException(PAYMENT_TOTAL_PRICE_ERROR);
 		}
 	}

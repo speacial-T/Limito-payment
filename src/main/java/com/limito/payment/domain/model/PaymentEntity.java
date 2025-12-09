@@ -1,11 +1,13 @@
 package com.limito.payment.domain.model;
 
+import static com.limito.payment.domain.exception.PaymentErrorCode.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.limito.common.audit.BaseEntity;
+import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
@@ -32,7 +34,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
-public class PaymentEntity extends BaseEntity {
+public class PaymentEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -118,13 +120,13 @@ public class PaymentEntity extends BaseEntity {
 
 	private void validateCanApprove() {
 		if (this.paymentStatus != PaymentStatusEnum.IN_PROGRESS) {
-			throw new IllegalStateException("진행중인 결제만 승인 가능합니다");
+			throw new AppException(PAYMENT_CAN_NOT_CONFIRM);
 		}
 	}
 
 	private void validateCanCancelOrRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
-			throw new IllegalStateException("결제 완료가 아닌 결제는 결제취소/환불 할 수 없습니다");
+			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
 
