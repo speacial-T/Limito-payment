@@ -6,7 +6,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import feign.RequestInterceptor;
-import jakarta.servlet.http.HttpServletRequest;
 
 @Configuration
 public class FeignClientConfig {

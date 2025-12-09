@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/v1/payments")
+@RequestMapping("/api/v1/payments")
 public class PaymentControllerV1 {
 
 	private final PaymentServiceV1 paymentService;
