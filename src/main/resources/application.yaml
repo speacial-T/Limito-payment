@@ -48,3 +48,6 @@ logging:
     #    org.springframework.web: error
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
+feign:
+  order-service:
+    url: http://localhost:19096
