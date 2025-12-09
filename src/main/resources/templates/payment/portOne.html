@@ -45,7 +45,7 @@
     </dialog>
 </div>
 <script th:inline="javascript">
-    const orderId = '[[${orderId}]]';
+    const orderId = /*[[${orderId}]]*/ "";
     const itemSummary = '[[${itemSummary}]]';
     const itemsString = '[[${items}]]'; // JSON 문자열로 받음
 
@@ -142,7 +142,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        orderId: payment.orderId,
+                        orderId: orderData.orderId,
                         paymentKey: payment.paymentId,
                         amount: payment.totalAmount,
                         confirmedAt: payment.confirmedAt

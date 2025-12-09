@@ -44,34 +44,39 @@ public class PortOnePaymentMapper {
 			String easyPayProvider = null;
 
 			String methodType = root.path("method").path("type").asText(null);
-
+			log.info("PortOnePaymentMapper.extractExtraInfo methodType={}", methodType);
 			switch (methodType) {
-
 				case "PaymentMethodCard" -> {
 					method = PaymentMethodEnum.CARD;
 					cardName = root.path("method").path("card").path("name").asText(null);
 					cardNum = root.path("method").path("card").path("number").asText(null);
 					pgProvider = root.path("channel").path("pgProvider").asText(null);
-				}
+					log.info("method=CARD, cardName={}, cardNum={}, pgProvider={}", cardName, cardNum, pgProvider);
 
+				}
 				case "PaymentMethodEasyPay" -> {
 					easyPayProvider = root.path("method").path("provider").asText(null);
+					log.info("method=EASY_PAY, easyPayProvider={}", easyPayProvider);
+
 				}
-
 				default -> {
-
 				}
 			}
-			switch (easyPayProvider) {
-				case "KAKAOPAY" -> {
-					method = PaymentMethodEnum.EASY_PAY_K_PAY;
+			if (easyPayProvider != null) {
+				switch (easyPayProvider) {
+					case "KAKAOPAY" -> {
+						method = PaymentMethodEnum.EASY_PAY_K_PAY;
+					}
+					case "TOSSPAY" -> {
+						method = PaymentMethodEnum.EASY_PAY_T_PAY;
+					}
+					case "NAVERPAY" -> {
+						method = PaymentMethodEnum.EASY_PAY_N_PAY;
+					}
+					default -> {
+					}
 				}
-				case "TOSSPAY" -> {
-					method = PaymentMethodEnum.EASY_PAY_T_PAY;
-				}
-				case "NAVERPAY" -> {
-					method = PaymentMethodEnum.EASY_PAY_N_PAY;
-				}
+				log.info("mapped easyPayProvider={} to method={}", easyPayProvider, method);
 			}
 			return PaymentDetailDtoV1.builder()
 				.paymentStatus(convertStatus(status))

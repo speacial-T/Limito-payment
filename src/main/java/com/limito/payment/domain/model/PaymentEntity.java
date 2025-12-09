@@ -111,6 +111,10 @@ public class PaymentEntity {
 			this.cardName = extra.getCardName();
 		if (extra.getPgProvider() != null)
 			this.pgProvider = extra.getPgProvider();
+		if (extra.getCardNum() != null)
+			this.cardNum = extra.getCardNum();
+		if (extra.getPaymentMethod() != null)
+			this.paymentMethod = extra.getPaymentMethod();
 		if (extra.getFailLog() != null)
 			this.failLog = extra.getFailLog();
 		if (extra.getApprovedAt() != null)
