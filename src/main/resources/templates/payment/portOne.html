@@ -136,7 +136,7 @@
                     return
                 }
                 console.log(payment);
-                const completeResponse = await fetch(`/v1/payments/${payment.paymentId}/confirm`, {
+                const completeResponse = await fetch(`/api/v1/payments/${payment.paymentId}/confirm`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

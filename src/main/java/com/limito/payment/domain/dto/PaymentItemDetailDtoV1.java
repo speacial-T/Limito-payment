@@ -40,7 +40,4 @@ public class PaymentItemDetailDtoV1 {
 
 	private PaymentStatusEnum status;
 
-	public void updateStatusBasedOnPayment(PaymentStatusEnum paymentStatus) {
-		this.status = paymentStatus;
-	}
 }

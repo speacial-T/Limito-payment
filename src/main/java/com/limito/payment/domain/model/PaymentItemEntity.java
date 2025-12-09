@@ -64,15 +64,6 @@ public class PaymentItemEntity {
 	@Column(nullable = false)
 	PaymentStatusEnum status;
 
-	public static PaymentItemEntity createFrom(Long sellerId, UUID orderItemId,
-		ProductTypeEnum productType, String productName,
-		Integer productPrice, Integer productAmount) {
-		return new PaymentItemEntity(
-			null, null, sellerId, orderItemId, productName, productPrice,
-			productType, productAmount, null, PaymentStatusEnum.IN_PROGRESS
-		);
-	}
-
 	public void assignPayment(PaymentEntity payment) {
 		this.payment = payment;
 		this.payment.paymentId = payment.paymentId;
