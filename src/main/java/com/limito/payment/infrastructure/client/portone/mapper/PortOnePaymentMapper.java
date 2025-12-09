@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
+import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,9 @@ public class PortOnePaymentMapper {
 	public PaymentDetailDtoV1 extractExtraInfo(String json) {
 		try {
 			JsonNode root = objectMapper.readTree(json);
-
+			PaymentMethodEnum method = null;
 			String status = root.path("status").asText(null);
 			String paymentKey = root.path("id").asText(null);
-
-			String cardName = root.path("method").path("card").path("name").asText(null);
-			String pgProvider = root.path("channel").path("pgProvider").asText(null);
-
 			String failLog = null;
 			JsonNode failureNode = root.path("failure");
 			if (!failureNode.isMissingNode() && !failureNode.isNull()) {
@@ -41,12 +38,48 @@ public class PortOnePaymentMapper {
 			if (!paidAtNode.isMissingNode() && !paidAtNode.isNull()) {
 				approvedAt = ZonedDateTime.parse(paidAtNode.asText()).toLocalDateTime();
 			}
+			String cardName = null;
+			String cardNum = null;
+			String pgProvider = null;
+			String easyPayProvider = null;
 
+			String methodType = root.path("method").path("type").asText(null);
+
+			switch (methodType) {
+
+				case "PaymentMethodCard" -> {
+					method = PaymentMethodEnum.CARD;
+					cardName = root.path("method").path("card").path("name").asText(null);
+					cardNum = root.path("method").path("card").path("number").asText(null);
+					pgProvider = root.path("channel").path("pgProvider").asText(null);
+				}
+
+				case "PaymentMethodEasyPay" -> {
+					easyPayProvider = root.path("method").path("provider").asText(null);
+				}
+
+				default -> {
+
+				}
+			}
+			switch (easyPayProvider) {
+				case "KAKAOPAY" -> {
+					method = PaymentMethodEnum.EASY_PAY_K_PAY;
+				}
+				case "TOSSPAY" -> {
+					method = PaymentMethodEnum.EASY_PAY_T_PAY;
+				}
+				case "NAVERPAY" -> {
+					method = PaymentMethodEnum.EASY_PAY_N_PAY;
+				}
+			}
 			return PaymentDetailDtoV1.builder()
 				.paymentStatus(convertStatus(status))
 				.paymentKey(paymentKey)
 				.cardName(cardName)
+				.cardNum(cardNum)
 				.pgProvider(pgProvider)
+				.paymentMethod(method)
 				.failLog(failLog)
 				.approvedAt(approvedAt)
 				.build();

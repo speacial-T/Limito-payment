@@ -36,7 +36,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
 	@Override
 	public boolean hasPaymentByOrderId(UUID orderId) {
-		return paymentJpaRepository.existsByOrderIdAndDeletedAtIsNull(orderId);
+		return paymentJpaRepository.existsByOrderId(orderId);
 	}
 
 }

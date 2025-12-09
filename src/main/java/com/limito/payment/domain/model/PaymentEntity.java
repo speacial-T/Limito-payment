@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.limito.common.audit.BaseEntity;
 import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
@@ -36,7 +35,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class PaymentEntity {
-public class PaymentEntity extends BaseEntity {
+	// public class PaymentEntity extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -122,7 +121,7 @@ public class PaymentEntity extends BaseEntity {
 
 	private void validateCanApprove() {
 		if (this.paymentStatus != PaymentStatusEnum.IN_PROGRESS) {
-			throw new AppException(PAYMENT_VALIDATE_ERROR);
+			throw new AppException(PAYMENT_CAN_NOT_CONFIRM);
 		}
 	}
 
