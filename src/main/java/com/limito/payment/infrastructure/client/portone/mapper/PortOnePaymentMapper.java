@@ -48,9 +48,17 @@ public class PortOnePaymentMapper {
 			switch (methodType) {
 				case "PaymentMethodCard" -> {
 					method = PaymentMethodEnum.CARD;
-					cardName = root.path("method").path("card").path("name").asText(null);
-					cardNum = root.path("method").path("card").path("number").asText(null);
-					pgProvider = root.path("channel").path("pgProvider").asText(null);
+					cardName = root.path("method")
+						.path("card")
+						.path("name")
+						.asText(null);
+					cardNum = root.path("method")
+						.path("card")
+						.path("number")
+						.asText(null);
+					pgProvider = root.path("channel")
+						.path("pgProvider")
+						.asText(null);
 					log.info("method=CARD, cardName={}, cardNum={}, pgProvider={}", cardName, cardNum, pgProvider);
 
 				}
