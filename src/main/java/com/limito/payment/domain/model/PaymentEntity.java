@@ -1,11 +1,14 @@
 package com.limito.payment.domain.model;
 
+import static com.limito.payment.domain.exception.PaymentErrorCode.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.limito.common.audit.BaseEntity;
+import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
@@ -118,7 +121,7 @@ public class PaymentEntity extends BaseEntity {
 
 	private void validateCanApprove() {
 		if (this.paymentStatus != PaymentStatusEnum.IN_PROGRESS) {
-			throw new IllegalStateException("진행중인 결제만 승인 가능합니다");
+			throw new AppException(PAYMENT_VALIDATE_ERROR);
 		}
 	}
 
@@ -138,16 +141,11 @@ public class PaymentEntity extends BaseEntity {
 		this.failLog = failLog;
 	}
 
-	public void refund(String refundReason) {
+	public void cancelAndRefund(String refundReason, LocalDateTime refundAt,
+		CancelAndRefundStatusEnum cancelAndRefundStatus) {
 		this.refundReason = refundReason;
-		this.cancelAndRefundStatus = CancelAndRefundStatusEnum.REFUND;
-		this.refundAt = LocalDateTime.now();
-	}
-
-	public void cancel(String refundReason) {
-		this.refundReason = refundReason;
-		this.cancelAndRefundStatus = CancelAndRefundStatusEnum.CANCEL;
-		this.refundAt = LocalDateTime.now();
+		this.cancelAndRefundStatus = cancelAndRefundStatus;
+		this.refundAt = refundAt;
 	}
 
 	public void updatePaymentStatus(PaymentStatusEnum paymentStatus) {
