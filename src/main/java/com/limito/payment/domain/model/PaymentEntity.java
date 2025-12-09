@@ -35,6 +35,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
+public class PaymentEntity {
 public class PaymentEntity extends BaseEntity {
 
 	@Id
@@ -127,7 +128,7 @@ public class PaymentEntity extends BaseEntity {
 
 	private void validateCanCancelOrRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
-			throw new IllegalStateException("결제 완료가 아닌 결제는 결제취소/환불 할 수 없습니다");
+			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
 
