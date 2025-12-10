@@ -29,12 +29,14 @@ public class PortOnePaymentMapper {
 			String paymentKey = root.path("id").asText(null);
 			String failLog = null;
 			JsonNode failureNode = root.path("failure");
+			// TODO: refactor - if/else
 			if (!failureNode.isMissingNode() && !failureNode.isNull()) {
 				failLog = failureNode.path("reason").asText(null);
 			}
 
 			LocalDateTime approvedAt = null;
 			JsonNode paidAtNode = root.path("paidAt");
+			// TODO: refactor - if/else
 			if (!paidAtNode.isMissingNode() && !paidAtNode.isNull()) {
 				approvedAt = ZonedDateTime.parse(paidAtNode.asText()).toLocalDateTime();
 			}
@@ -106,6 +108,7 @@ public class PortOnePaymentMapper {
 	private PaymentStatusEnum convertStatus(String status) {
 		if (status == null)
 			return null;
+		// TODO: refactor - switch
 		return switch (status.toUpperCase()) {
 			case "READY" -> PaymentStatusEnum.IN_PROGRESS;
 			case "PAID" -> PaymentStatusEnum.SUCCESS;

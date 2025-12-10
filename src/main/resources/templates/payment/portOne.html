@@ -136,7 +136,7 @@
                     return
                 }
                 console.log(payment);
-                const completeResponse = await fetch(`/v1/payments/${payment.paymentId}/confirm`, {
+                const completeResponse = await fetch(`/api/v1/payments/${payment.paymentId}/confirm`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -154,7 +154,7 @@
                 if (completeResponse.ok) {
                     const paymentComplete = await completeResponse.json()
                     switch (paymentComplete.status) {
-                        case "PAID":
+                        case "SUCCESS":
                             this.openSuccessDialog()
                             break
                         case "VIRTUAL_ACCOUNT_ISSUED":
