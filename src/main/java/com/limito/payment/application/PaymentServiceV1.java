@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
+import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.model.PaymentEntity;
 import com.limito.payment.domain.model.PaymentItemEntity;
 import com.limito.payment.domain.model.PaymentItemMapper;
@@ -84,6 +85,15 @@ public class PaymentServiceV1 {
 		}
 	}
 
+	public void validPaymentCancelOrRefundRequest(UUID orderId) {
+		log.info("orderId={}", orderId);
+
+		PaymentEntity payment = paymentRepository.getByOrderId(orderId);
+		PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
+		log.info("detailDtoV1={}", detailDtoV1);
+		payment.validateCanCancelOrRefund();
+	}
+
 	@Transactional
 	public void createPayment(UUID orderId, CreatePaymentRequestV1 request) {
 		log.info("received createPayment for orderId={}, request={}", orderId, request);
@@ -95,11 +105,7 @@ public class PaymentServiceV1 {
 		PaymentEntity payment = PaymentMapper.create(orderId, request);
 		PaymentEntity savedPayment = paymentRepository.save(payment);
 
-		List<PaymentItemDetailDtoV1> itemDtos = request.getItems().stream()
-			.map(paymentItemMapper::mapToPaymentItem)
-			.toList();
-
-		List<PaymentItemEntity> itemEntities = itemDtos.stream()
+		List<PaymentItemEntity> itemEntities = paymentItems.stream()
 			.map(paymentItemMapper::toEntity)
 			.toList();
 		savedPayment.addItems(itemEntities);
@@ -149,4 +155,39 @@ public class PaymentServiceV1 {
 	public PaymentDetailDtoV1 getPaymentInfoByOrderId(UUID orderId) {
 		return paymentMapper.toDto(paymentRepository.getByOrderId(orderId));
 	}
+
+	@Transactional
+	public void cancelAndRefundPayment(UUID orderId, CancelAndRefundStatusEnum cancelAndRefundStatusEnum,
+		String refundReason) {
+		try {
+			PaymentEntity payment = paymentRepository.getByOrderId(orderId);
+			try {
+				payment.validateCanCancelOrRefund();
+			} catch (AppException e) {
+				return;
+			}
+			PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
+
+			String rawJson = portOneWebClient.cancelPayment(detailDtoV1.getPaymentKey(), refundReason);
+			PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
+			if (result.getFailLog() != null) {
+				payment.markAsCancelFailed(result.getFailLog());
+				return;
+			}
+			log.info("Payment cancellation/refund successful for orderId={}, refundAt={}, reason={}", orderId,
+				result.getRefundAt(), refundReason);
+			payment.cancelAndRefund(refundReason, result.getRefundAt(), cancelAndRefundStatusEnum);
+			paymentRepository.save(payment);
+			List<PaymentItemEntity> paymentItems = paymentItemRepository.getPaymentItems(detailDtoV1.getPaymentId());
+			paymentItems.forEach(item -> {
+				item.updateCancelAndRefundStatus(cancelAndRefundStatusEnum);
+				item.assignPayment(payment);
+			});
+			return;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+	}
+
 }

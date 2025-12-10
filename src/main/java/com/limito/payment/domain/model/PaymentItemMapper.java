@@ -43,17 +43,18 @@ public class PaymentItemMapper {
 		if (dto == null)
 			return null;
 
-		return new PaymentItemEntity(
-			dto.getPaymentItemId(),
-			null, // payment는 순환 참조 방지를 위해 제외
-			dto.getSellerId(),
-			dto.getOrderItemId(),
-			dto.getProductName(),
-			Integer.valueOf(dto.getProductPrice()),
-			dto.getProductType(),
-			Integer.valueOf(dto.getProductAmount()),
-			dto.getRefundPrice(),
-			dto.getStatus()
-		);
+		return PaymentItemEntity.builder()
+			.paymentItemId(dto.getPaymentItemId())
+			.payment(null)
+			.sellerId(dto.getSellerId())
+			.orderItemId(dto.getOrderItemId())
+			.productName(dto.getProductName())
+			.productPrice(dto.getProductPrice())
+			.productType(dto.getProductType())
+			.productAmount(dto.getProductAmount())
+			.refundPrice(dto.getRefundPrice())
+			.status(dto.getStatus())
+			.cancelAndRefundStatus(dto.getCancelAndRefundStatus())
+			.build();
 	}
 }

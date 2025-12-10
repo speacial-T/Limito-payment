@@ -27,7 +27,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Entity
 @Table(name = "p_payments")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -123,21 +125,17 @@ public class PaymentEntity {
 			this.refundAt = extra.getRefundAt();
 	}
 
-	private void validateCanApprove() {
-		if (this.paymentStatus != PaymentStatusEnum.IN_PROGRESS) {
-			throw new AppException(PAYMENT_CAN_NOT_CONFIRM);
-		}
-	}
-
-	private void validateCanCancelOrRefund() {
+	public void validateCanCancelOrRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
+			log.info("결제 완료 상태 아님");
+			throw new AppException(PAYMENT_IS_NOT_SUCCESS);
+		}
+
+		if (this.cancelAndRefundStatus == CancelAndRefundStatusEnum.CANCEL
+			|| this.cancelAndRefundStatus == CancelAndRefundStatusEnum.REFUND) {
+			log.info("{} 상태", cancelAndRefundStatus);
 			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
-	}
-
-	public void markAsFailed(String failLog) {
-		this.paymentStatus = PaymentStatusEnum.FAILED;
-		this.failLog = failLog;
 	}
 
 	public void markAsCancelFailed(String failLog) {
@@ -151,9 +149,4 @@ public class PaymentEntity {
 		this.cancelAndRefundStatus = cancelAndRefundStatus;
 		this.refundAt = refundAt;
 	}
-
-	public void updatePaymentStatus(PaymentStatusEnum paymentStatus) {
-		this.paymentStatus = paymentStatus;
-	}
-
 }

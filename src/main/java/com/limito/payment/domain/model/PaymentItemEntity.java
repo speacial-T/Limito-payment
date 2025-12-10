@@ -2,6 +2,7 @@ package com.limito.payment.domain.model;
 
 import java.util.UUID;
 
+import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
 
@@ -63,15 +64,8 @@ public class PaymentItemEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	PaymentStatusEnum status;
-
-	public static PaymentItemEntity createFrom(Long sellerId, UUID orderItemId,
-		ProductTypeEnum productType, String productName,
-		Integer productPrice, Integer productAmount) {
-		return new PaymentItemEntity(
-			null, null, sellerId, orderItemId, productName, productPrice,
-			productType, productAmount, null, PaymentStatusEnum.IN_PROGRESS
-		);
-	}
+	@Enumerated(EnumType.STRING)
+	CancelAndRefundStatusEnum cancelAndRefundStatus;
 
 	public void assignPayment(PaymentEntity payment) {
 		this.payment = payment;
@@ -82,13 +76,9 @@ public class PaymentItemEntity {
 		this.status = status;
 	}
 
-	public void refund(Integer refundAmount) {
-		this.refundPrice = refundAmount;
-		this.status = PaymentStatusEnum.REFUND;
+	public void updateCancelAndRefundStatus(CancelAndRefundStatusEnum status) {
+		this.cancelAndRefundStatus = status;
+		this.refundPrice = productPrice;
 	}
 
-	public void canceled(Integer refundAmount) {
-		this.refundPrice = refundAmount;
-		this.status = PaymentStatusEnum.CANCELED;
-	}
 }
