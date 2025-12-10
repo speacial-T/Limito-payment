@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.limito.payment.application.PaymentServiceV1;
+import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 
 import lombok.RequiredArgsConstructor;

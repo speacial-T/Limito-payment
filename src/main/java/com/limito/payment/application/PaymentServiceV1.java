@@ -12,6 +12,7 @@ import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.ProductTypeEnum;
 import com.limito.payment.domain.model.PaymentEntity;
 import com.limito.payment.domain.model.PaymentItemEntity;
 import com.limito.payment.domain.model.PaymentItemMapper;
@@ -98,11 +99,7 @@ public class PaymentServiceV1 {
 		PaymentEntity payment = PaymentMapper.create(orderId, request);
 		PaymentEntity savedPayment = paymentRepository.save(payment);
 
-		List<PaymentItemDetailDtoV1> itemDtos = request.getItems().stream()
-			.map(paymentItemMapper::mapToPaymentItem)
-			.toList();
-
-		List<PaymentItemEntity> itemEntities = itemDtos.stream()
+		List<PaymentItemEntity> itemEntities = paymentItems.stream()
 			.map(paymentItemMapper::toEntity)
 			.toList();
 		savedPayment.addItems(itemEntities);
@@ -124,19 +121,25 @@ public class PaymentServiceV1 {
 
 		String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
 		PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
-
+		List<PaymentItemEntity> items =
+			paymentItemRepository.getPaymentItems(payment.internalId());
+		List<PaymentItemDetailDtoV1> dtoList = items.stream()
+			.map(paymentItemMapper::toDto)
+			.toList();
 		//주문 서비스로 결과 전달
 		// TODO: refactor - if/else
 		if (extra.getPaymentStatus() == PaymentStatusEnum.SUCCESS) {
-			orderClient.notifyPaymentSuccess(orderId);
+			if(dtoList.get(0).getProductType()== ProductTypeEnum.LIMITED){
+				orderClient.notifyPaymentLimitedSuccess(orderId);
+			} else {
+				orderClient.notifyPaymentResellSuccess(orderId);
+			}
 		} else {
 			orderClient.notifyPaymentFail(orderId);
 		}
 		// 결제 완료/실패 등 상태 반영
 		payment.handlePgCallback(extra);
 		paymentRepository.save(payment);
-		List<PaymentItemEntity> items =
-			paymentItemRepository.getPaymentItems(payment.internalId());
 
 		log.debug("[confirmPayment] loaded paymentItems={}", items);
 

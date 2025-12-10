@@ -57,6 +57,7 @@ public class PaymentControllerV1 {
 	) {
 		log.info("PaymentControllerV1.confirmPayment called paymentKey={}, response= {}", paymentId, response);
 		PaymentConfirmResponseDtoV1 result = paymentService.confirmPayment(paymentId, response);
+		log.info("PaymentControllerV1.confirmPayment success response= {}", response);
 
 		return ResponseEntity.ok(result);
 	}

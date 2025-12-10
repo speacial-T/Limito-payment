@@ -154,7 +154,7 @@
                 if (completeResponse.ok) {
                     const paymentComplete = await completeResponse.json()
                     switch (paymentComplete.status) {
-                        case "PAID":
+                        case "SUCCESS":
                             this.openSuccessDialog()
                             break
                         case "VIRTUAL_ACCOUNT_ISSUED":

@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @FeignClient(name = "order-service", url = "${feign.order-service.url}")
 public interface OrderClient {
-	@PostMapping("/internal/v1/orders/success-payments/{orderId}")
-	ResponseEntity<Void> notifyPaymentSuccess(@PathVariable("orderId") UUID orderId);
+	@PostMapping("/internal/v1/orders/success-payments/limited/{orderId}")
+	ResponseEntity<Void> notifyPaymentLimitedSuccess(@PathVariable("orderId") UUID orderId);
+
+	@PostMapping("/internal/v1/orders/success-payments/resell/{orderId}")
+	ResponseEntity<Void> notifyPaymentResellSuccess(@PathVariable("orderId") UUID orderId);
 
 	@PostMapping("/internal/v1/orders/fail-payments/{orderId}")
 	ResponseEntity<Void> notifyPaymentFail(@PathVariable("orderId") UUID orderId);
