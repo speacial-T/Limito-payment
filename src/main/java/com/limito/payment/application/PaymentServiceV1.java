@@ -22,6 +22,7 @@ import com.limito.payment.infrastructure.client.portone.PortOneClient;
 import com.limito.payment.infrastructure.client.portone.mapper.PortOnePaymentMapper;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 import com.limito.payment.infrastructure.dto.request.OrderItem;
+import com.limito.payment.presentation.dto.request.CancelAndRefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
@@ -83,15 +84,6 @@ public class PaymentServiceV1 {
 				orderId, totalCalculatedPrice, request.getTotalPrice());
 			throw new AppException(PAYMENT_TOTAL_PRICE_ERROR);
 		}
-	}
-
-	public void validPaymentCancelOrRefundRequest(UUID orderId) {
-		log.info("orderId={}", orderId);
-
-		PaymentEntity payment = paymentRepository.getByOrderId(orderId);
-		PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
-		log.info("detailDtoV1={}", detailDtoV1);
-		payment.validateCanCancelOrRefund();
 	}
 
 	@Transactional
@@ -157,30 +149,29 @@ public class PaymentServiceV1 {
 	}
 
 	@Transactional
-	public void cancelAndRefundPayment(UUID orderId, CancelAndRefundStatusEnum cancelAndRefundStatusEnum,
-		String refundReason) {
+	public void cancelAndRefundPayment(UUID orderId, CancelAndRefundPaymentRequestV1 request) {
 		try {
 			PaymentEntity payment = paymentRepository.getByOrderId(orderId);
 			try {
 				payment.validateCanCancelOrRefund();
+
 			} catch (AppException e) {
 				return;
 			}
 			PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
 
-			String rawJson = portOneWebClient.cancelPayment(detailDtoV1.getPaymentKey(), refundReason);
+			String rawJson = portOneWebClient.cancelPayment(detailDtoV1.getPaymentKey(), request.getRefundReason());
 			PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
 			if (result.getFailLog() != null) {
 				payment.markAsCancelFailed(result.getFailLog());
 				return;
 			}
 			log.info("Payment cancellation/refund successful for orderId={}, refundAt={}, reason={}", orderId,
-				result.getRefundAt(), refundReason);
-			payment.cancelAndRefund(refundReason, result.getRefundAt(), cancelAndRefundStatusEnum);
-			paymentRepository.save(payment);
+				result.getRefundAt(), request.getRefundReason());
+			payment.cancelAndRefund(request.getRefundReason(), result.getRefundAt(), request.getCancelType());
 			List<PaymentItemEntity> paymentItems = paymentItemRepository.getPaymentItems(detailDtoV1.getPaymentId());
 			paymentItems.forEach(item -> {
-				item.updateCancelAndRefundStatus(cancelAndRefundStatusEnum);
+				item.updateCancelAndRefundStatus(request.getCancelType());
 				item.assignPayment(payment);
 			});
 			return;

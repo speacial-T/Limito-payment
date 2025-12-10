@@ -28,47 +28,44 @@ public class PaymentInternalControllerV1 {
 
 	@PostMapping("/{orderId}/confirm")
 	public ResponseEntity<Object> confirmPayment(
-		@PathVariable String orderId,
+		@PathVariable UUID orderId,
 		@RequestBody CreatePaymentRequestV1 request) {
 		try {
-			paymentService.validPaymentRequest(UUID.fromString(orderId), request);
+			paymentService.validPaymentRequest(orderId, request);
 		} catch (Exception e) {
 			log.warn("주문 아이디 orderId={}에 대한 결제 요청 내역이 있습니다. {}", orderId, e.getMessage());
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("해당 중복 결제 불가");
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(request);
 		}
-		paymentService.createPayment(UUID.fromString(orderId), request);
-		return ResponseEntity.status(HttpStatus.OK).body(null);
+		paymentService.createPayment(orderId, request);
+		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/{orderId}/cancel")
 	public ResponseEntity<Object> cancelPayment(
-		@PathVariable String orderId,
+		@PathVariable UUID orderId,
 		@RequestBody CancelAndRefundPaymentRequestV1 request) {
 		try {
-			paymentService.validPaymentCancelOrRefundRequest(UUID.fromString(orderId));
+			paymentService.cancelAndRefundPayment(orderId, request);
 		} catch (Exception e) {
 			log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불 내역이 있습니다", orderId, request.getRefundReason(), e);
 			return ResponseEntity.status(HttpStatus.CONFLICT)
-				.body(String.format("주문 아이디 %s에 대해 결제 취소를 진행할 수 없습니다.", orderId));
+				.body(request);
 		}
-		paymentService.cancelAndRefundPayment(UUID.fromString(orderId), CancelAndRefundStatusEnum.CANCEL,
-			request.getRefundReason());
-		return ResponseEntity.status(HttpStatus.OK).body(null);
+		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/{orderId}/refund")
 	public ResponseEntity<Object> refundPayment(
-		@PathVariable String orderId,
+		@PathVariable UUID orderId,
 		@RequestBody CancelAndRefundPaymentRequestV1 request) {
 		try {
-			paymentService.validPaymentCancelOrRefundRequest(UUID.fromString(orderId));
+			paymentService.cancelAndRefundPayment(orderId, request);
 		} catch (Exception e) {
 			log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불을 진행할 수 없습니다", orderId, request.getRefundReason(), e);
 			return ResponseEntity.status(HttpStatus.CONFLICT)
-				.body(String.format("주문 아이디 %s에 대해 결제 환불을 진행할 수 없습니다.", orderId));
+				.body(request);
 		}
-		paymentService.cancelAndRefundPayment(UUID.fromString(orderId), CancelAndRefundStatusEnum.REFUND,
-			request.getRefundReason());
-		return ResponseEntity.status(HttpStatus.OK).body(null);
+		return ResponseEntity.ok().build();
 	}
 }
