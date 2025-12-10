@@ -33,7 +33,4 @@ public class PaymentItemDetailDtoV1 {
 	private Integer refundPrice;
 	private PaymentStatusEnum status;
 
-	public void updateStatusBasedOnPayment(PaymentStatusEnum paymentStatus) {
-		this.status = paymentStatus;
-	}
 }
