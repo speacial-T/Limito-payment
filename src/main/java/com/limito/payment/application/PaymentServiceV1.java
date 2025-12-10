@@ -19,7 +19,7 @@ import com.limito.payment.domain.model.PaymentItemMapper;
 import com.limito.payment.domain.model.PaymentMapper;
 import com.limito.payment.domain.repository.PaymentItemRepository;
 import com.limito.payment.domain.repository.PaymentRepository;
-import com.limito.payment.infrastructure.client.portone.OrderClient;
+import com.limito.payment.infrastructure.client.OrderClient;
 import com.limito.payment.infrastructure.client.portone.PortOneClient;
 import com.limito.payment.infrastructure.client.portone.mapper.PortOnePaymentMapper;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;

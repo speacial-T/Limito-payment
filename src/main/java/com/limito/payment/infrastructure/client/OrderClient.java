@@ -1,4 +1,4 @@
-package com.limito.payment.infrastructure.client.portone;
+package com.limito.payment.infrastructure.client;
 
 import java.util.UUID;
 
