@@ -20,10 +20,8 @@ import lombok.ToString;
 @Setter
 @ToString
 public class PaymentItemDetailDtoV1 {
-
 	CancelAndRefundStatusEnum cancelAndRefundStatus;
 	private UUID paymentItemId;
-	private PaymentDetailDtoV1 payment;
 	private Long sellerId;
 	private UUID orderItemId;
 	private ProductTypeEnum productType;
@@ -32,5 +30,4 @@ public class PaymentItemDetailDtoV1 {
 	private int productAmount;
 	private Integer refundPrice;
 	private PaymentStatusEnum status;
-
 }
