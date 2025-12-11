@@ -3,6 +3,7 @@ package com.limito.payment.presentation;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.limito.payment.application.PaymentServiceV1;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
+import com.limito.payment.presentation.dto.request.CancelAndRefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
@@ -68,5 +70,33 @@ public class PaymentControllerV1 {
 	) {
 		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(UUID.fromString(orderId));
 		return ResponseEntity.ok(paymentDto);
+	}
+
+	@PostMapping("/{orderId}/cancel")
+	public ResponseEntity<Object> cancelPayment(
+		@PathVariable UUID orderId,
+		@RequestBody CancelAndRefundPaymentRequestV1 request) {
+		try {
+			paymentService.cancelAndRefundPayment(orderId, request);
+		} catch (Exception e) {
+			log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불 내역이 있습니다", orderId, request.getRefundReason(), e);
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(request);
+		}
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("/{orderId}/refund")
+	public ResponseEntity<Object> refundPayment(
+		@PathVariable UUID orderId,
+		@RequestBody CancelAndRefundPaymentRequestV1 request) {
+		try {
+			paymentService.cancelAndRefundPayment(orderId, request);
+		} catch (Exception e) {
+			log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불을 진행할 수 없습니다", orderId, request.getRefundReason(), e);
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(request);
+		}
+		return ResponseEntity.ok().build();
 	}
 }
