@@ -69,6 +69,9 @@ public class PortOnePaymentMapper {
 				}
 				case "PaymentMethodEasyPay" -> {
 					easyPayProvider = root.path("method").path("provider").asText(null);
+					pgProvider = root.path("channel")
+						.path("pgProvider")
+						.asText(null);
 					log.info("method=EASY_PAY, easyPayProvider={}", easyPayProvider);
 
 				}
