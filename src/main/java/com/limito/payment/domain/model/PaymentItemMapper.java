@@ -23,9 +23,9 @@ public class PaymentItemMapper {
 	}
 
 	public PaymentItemDetailDtoV1 toDto(PaymentItemEntity entity) {
-		if (entity == null)
+		if (entity == null) {
 			return null;
-
+		}
 		return PaymentItemDetailDtoV1.builder()
 			.paymentItemId(entity.paymentItemId)
 			.sellerId(entity.sellerId)
@@ -40,9 +40,9 @@ public class PaymentItemMapper {
 	}
 
 	public PaymentItemEntity toEntity(PaymentItemDetailDtoV1 dto) {
-		if (dto == null)
+		if (dto == null) {
 			return null;
-
+		}
 		return PaymentItemEntity.builder()
 			.paymentItemId(dto.getPaymentItemId())
 			.payment(null)

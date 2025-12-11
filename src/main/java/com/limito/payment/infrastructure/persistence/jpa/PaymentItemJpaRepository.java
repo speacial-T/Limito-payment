@@ -10,7 +10,16 @@ import com.limito.payment.domain.model.PaymentItemEntity;
 
 public interface PaymentItemJpaRepository extends JpaRepository<PaymentItemEntity, UUID> {
 
-	@Query("SELECT pi FROM PaymentItemEntity pi WHERE pi.payment.paymentId = :paymentId")
-		// @Query("SELECT pi FROM PaymentItemEntity pi WHERE pi.payment.paymentId = :paymentId AND pi.deletedAt IS NULL")
+	@Query("""
+		SELECT pi
+		FROM PaymentItemEntity pi
+		WHERE pi.payment.paymentId = :paymentId
+		""")
+	/*@Query("""
+		SELECT pi
+		FROM PaymentItemEntity pi
+		WHERE pi.payment.paymentId = :paymentId
+		AND pi.deletedAt IS NULL
+		""")*/
 	List<PaymentItemEntity> findAllByPaymentPaymentId(UUID paymentId);
 }

@@ -143,8 +143,9 @@ public class PortOnePaymentMapper {
 	}
 
 	private PaymentStatusEnum convertConfirmStatus(String status) {
-		if (status == null)
+		if (status == null) {
 			return null;
+		}
 		// TODO: refactor - switch
 		return switch (status.toUpperCase()) {
 			case "READY" -> PaymentStatusEnum.IN_PROGRESS;
@@ -165,17 +166,21 @@ public class PortOnePaymentMapper {
 
 		StringBuilder sb = new StringBuilder();
 
-		if (type != null)
+		if (type != null) {
 			sb.append("type=").append(type).append(" ");
-		if (message != null)
+		}
+		if (message != null) {
 			sb.append("message=").append(message).append(" ");
-		if (code != null)
+		}
+		if (code != null) {
 			sb.append("code=").append(code).append(" ");
-		if (status != null)
+		}
+		if (status != null) {
 			sb.append("status=").append(status).append(" ");
-		if (reason != null)
+		}
+		if (reason != null) {
 			sb.append("reason=").append(reason).append(" ");
-
+		}
 		if (sb.length() == 0) {
 			sb.append("UNKNOWN_FAIL_RESPONSE: ").append(root.toString());
 		}

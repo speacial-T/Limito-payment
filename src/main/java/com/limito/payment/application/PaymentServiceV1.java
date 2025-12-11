@@ -13,7 +13,6 @@ import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
-import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.model.PaymentEntity;
 import com.limito.payment.domain.model.PaymentItemEntity;
 import com.limito.payment.domain.model.PaymentItemMapper;
@@ -131,7 +130,7 @@ public class PaymentServiceV1 {
 		//주문 서비스로 결과 전달
 		// TODO: refactor - if/else
 		if (extra.getPaymentStatus() == PaymentStatusEnum.SUCCESS) {
-			if(dtoList.get(0).getProductType()== ProductTypeEnum.LIMITED){
+			if (dtoList.get(0).getProductType() == ProductTypeEnum.LIMITED) {
 				orderClient.notifyPaymentLimitedSuccess(orderId);
 			} else {
 				orderClient.notifyPaymentResellSuccess(orderId);

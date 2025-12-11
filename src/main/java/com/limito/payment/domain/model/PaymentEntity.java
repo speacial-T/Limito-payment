@@ -105,24 +105,33 @@ public class PaymentEntity {
 	}
 
 	public void handlePgCallback(PaymentDetailDtoV1 extra) {
-		if (extra.getPaymentKey() != null)
+		if (extra.getPaymentKey() != null) {
 			this.paymentKey = extra.getPaymentKey();
-		if (extra.getPaymentStatus() != null)
+		}
+		if (extra.getPaymentStatus() != null) {
 			this.paymentStatus = extra.getPaymentStatus();
-		if (extra.getCardName() != null)
+		}
+		if (extra.getCardName() != null) {
 			this.cardName = extra.getCardName();
-		if (extra.getPgProvider() != null)
+		}
+		if (extra.getPgProvider() != null) {
 			this.pgProvider = extra.getPgProvider();
-		if (extra.getCardNum() != null)
+		}
+		if (extra.getCardNum() != null) {
 			this.cardNum = extra.getCardNum();
-		if (extra.getPaymentMethod() != null)
+		}
+		if (extra.getPaymentMethod() != null) {
 			this.paymentMethod = extra.getPaymentMethod();
-		if (extra.getFailLog() != null)
+		}
+		if (extra.getFailLog() != null) {
 			this.failLog = extra.getFailLog();
-		if (extra.getApprovedAt() != null)
+		}
+		if (extra.getApprovedAt() != null) {
 			this.approvedAt = extra.getApprovedAt();
-		if (extra.getRefundAt() != null)
+		}
+		if (extra.getRefundAt() != null) {
 			this.refundAt = extra.getRefundAt();
+		}
 	}
 
 	public void validateCanCancelOrRefund() {

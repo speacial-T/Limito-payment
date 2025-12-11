@@ -30,9 +30,9 @@ public class PaymentMapper {
 	}
 
 	public PaymentEntity toEntity(PaymentDetailDtoV1 dto) {
-		if (dto == null)
+		if (dto == null) {
 			return null;
-
+		}
 		PaymentEntity entity = PaymentEntity.builder()
 			.paymentId(dto.getPaymentId())
 			.orderId(dto.getOrderId())
@@ -67,9 +67,9 @@ public class PaymentMapper {
 	}
 
 	public PaymentDetailDtoV1 toDto(PaymentEntity entity) {
-		if (entity == null)
+		if (entity == null) {
 			return null;
-
+		}
 		PaymentDetailDtoV1.PaymentDetailDtoV1Builder builder = PaymentDetailDtoV1.builder()
 			.paymentId(entity.paymentId)
 			.orderId(entity.orderId)

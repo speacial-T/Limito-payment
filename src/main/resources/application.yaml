@@ -2,7 +2,7 @@ server:
   port: 19097
 spring:
   application:
-    name: payment
+    name: payments-service
   datasource:
     url: jdbc:postgresql://localhost:5432/limito-db
     username: postgres
