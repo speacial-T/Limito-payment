@@ -24,10 +24,11 @@ import com.limito.payment.infrastructure.client.portone.PortOneClient;
 import com.limito.payment.infrastructure.client.portone.mapper.PortOnePaymentMapper;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 import com.limito.payment.infrastructure.dto.request.OrderItem;
-import com.limito.payment.presentation.dto.request.CancelAndRefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
+import com.limito.payment.presentation.dto.request.RefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
+import com.limito.payment.presentation.dto.response.PaymentRefundResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -122,15 +123,11 @@ public class PaymentServiceV1 {
 
 		String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
 		PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
-		List<PaymentItemEntity> items =
-			paymentItemRepository.getPaymentItems(payment.internalId());
-		List<PaymentItemDetailDtoV1> dtoList = items.stream()
-			.map(paymentItemMapper::toDto)
-			.toList();
 		//주문 서비스로 결과 전달
 		// TODO: refactor - if/else
 		if (extra.getPaymentStatus() == PaymentStatusEnum.SUCCESS) {
-			if (dtoList.get(0).getProductType() == ProductTypeEnum.LIMITED) {
+			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(payment.internalId());
+			if (type == ProductTypeEnum.LIMITED) {
 				orderClient.notifyPaymentLimitedSuccess(orderId);
 			} else {
 				orderClient.notifyPaymentResellSuccess(orderId);
@@ -142,22 +139,21 @@ public class PaymentServiceV1 {
 		payment.handlePgCallback(extra);
 		paymentRepository.save(payment);
 
-		log.debug("[confirmPayment] loaded paymentItems={}", items);
-
-		items.forEach(item -> {
-			item.updateStatus(extra.getPaymentStatus());
-			item.assignPayment(payment);
-		});
-
-		paymentItemRepository.saveAll(items);
+		int updated = paymentItemRepository.updateStatusByPaymentId(payment.internalId(), extra.getPaymentStatus());
+		if (updated == 0) {
+			List<PaymentItemEntity> items =
+				paymentItemRepository.getPaymentItems(payment.internalId());
+			items.forEach(item -> {
+				item.updateStatus(extra.getPaymentStatus());
+			});
+		}
 		PaymentDetailDtoV1 paymentDetail = paymentMapper.toDto(payment);
-		PaymentConfirmResponseDtoV1 result = PaymentConfirmResponseDtoV1.builder()
+		return PaymentConfirmResponseDtoV1.builder()
 			.orderId(paymentDetail.getOrderId())
 			.paymentStatus(paymentDetail.getPaymentStatus())
 			.paymentMethod(paymentDetail.getPaymentMethod())
 			.approvedAt(paymentDetail.getApprovedAt())
 			.build();
-		return result;
 	}
 
 	@Transactional(readOnly = true)
@@ -166,35 +162,45 @@ public class PaymentServiceV1 {
 	}
 
 	@Transactional
-	public void cancelAndRefundPayment(UUID orderId, CancelAndRefundPaymentRequestV1 request) {
+	public void refundPayment(UUID orderId, RefundPaymentRequestV1 request) {
 		try {
 			PaymentEntity payment = paymentRepository.getByOrderId(orderId);
-			try {
-				payment.validateCanCancelOrRefund();
 
-			} catch (AppException e) {
-				return;
-			}
+			payment.validateCanCancelOrRefund();
+
 			PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
 
 			String rawJson = portOneWebClient.cancelPayment(detailDtoV1.getPaymentKey(), request.getRefundReason());
 			PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
-			if (result.getFailLog() != null) {
-				payment.markAsCancelFailed(result.getFailLog());
-				return;
-			}
+
 			log.info("Payment cancellation/refund successful for orderId={}, refundAt={}, reason={}", orderId,
 				result.getRefundAt(), request.getRefundReason());
-			payment.cancelAndRefund(request.getRefundReason(), result.getRefundAt(), request.getCancelType());
-			List<PaymentItemEntity> paymentItems = paymentItemRepository.getPaymentItems(detailDtoV1.getPaymentId());
-			paymentItems.forEach(item -> {
-				item.updateCancelAndRefundStatus(request.getCancelType());
-				item.assignPayment(payment);
-			});
-			return;
+			payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus());
+
+			int updated = paymentItemRepository.updateStatusByPaymentId(payment.internalId(),
+				result.getPaymentStatus());
+			if (updated == 0) {
+				List<PaymentItemEntity> items =
+					paymentItemRepository.getPaymentItems(payment.internalId());
+				items.forEach(item -> {
+					item.updateStatus(result.getPaymentStatus());
+				});
+			}
+			if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
+				ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());
+				PaymentRefundResponseDtoV1 paymentRefundResponseDto = new PaymentRefundResponseDtoV1(
+					result.getPaymentStatus());
+				if (type == ProductTypeEnum.LIMITED) {
+					orderClient.notifyPaymentRefundLimitedSuccess(orderId, paymentRefundResponseDto);
+				} else {
+					orderClient.notifyPaymentRefundResellSuccess(orderId, paymentRefundResponseDto);
+				}
+			} else {
+				payment.markAsCancelFailed(result.getFailLog());
+				orderClient.notifyPaymentFail(orderId);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
 		}
 	}
 

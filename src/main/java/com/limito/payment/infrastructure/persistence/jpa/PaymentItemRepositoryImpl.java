@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.ProductTypeEnum;
 import com.limito.payment.domain.model.PaymentItemEntity;
 import com.limito.payment.domain.model.PaymentItemMapper;
 import com.limito.payment.domain.model.PaymentMapper;
@@ -24,8 +26,7 @@ public class PaymentItemRepositoryImpl implements PaymentItemRepository {
 	@Transactional
 	@Override
 	public List<PaymentItemEntity> saveAll(List<PaymentItemEntity> orderItems) {
-		paymentItemJpaRepository.saveAll(orderItems);
-		return orderItems;
+		return paymentItemJpaRepository.saveAll(orderItems);
 	}
 
 	@Transactional(readOnly = true)
@@ -39,4 +40,13 @@ public class PaymentItemRepositoryImpl implements PaymentItemRepository {
 		return paymentItems;
 	}
 
+	@Override
+	public ProductTypeEnum getProductTypeByPaymentId(UUID paymentId) {
+		return paymentItemJpaRepository.findProductTypeByPaymentId(paymentId);
+	}
+
+	@Override
+	public int updateStatusByPaymentId(UUID paymentId, PaymentStatusEnum status) {
+		return paymentItemJpaRepository.updateStatusByPaymentId(paymentId, status);
+	}
 }
