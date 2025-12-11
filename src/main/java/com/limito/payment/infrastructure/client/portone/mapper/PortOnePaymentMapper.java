@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
-import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -124,6 +124,8 @@ public class PortOnePaymentMapper {
 					.refundAt(Instant.parse(cancelledAtText)
 						.atZone(ZoneId.of("Asia/Seoul"))
 						.toLocalDateTime())
+					.refundStatus(RefundStatusEnum.REFUND)
+					.paymentStatus(PaymentStatusEnum.REFUND)
 					.build();
 			}
 
@@ -131,7 +133,7 @@ public class PortOnePaymentMapper {
 			String failLog = extractFailLog(root);
 
 			return PaymentDetailDtoV1.builder()
-				.cancelAndRefundStatus(CancelAndRefundStatusEnum.FAILED)
+				.refundStatus(RefundStatusEnum.FAILED)
 				.failLog(failLog)
 				.build();
 
@@ -139,7 +141,7 @@ public class PortOnePaymentMapper {
 			log.error("Failed to parse PortOne cancel JSON", e);
 
 			return PaymentDetailDtoV1.builder()
-				.cancelAndRefundStatus(CancelAndRefundStatusEnum.FAILED)
+				.refundStatus(RefundStatusEnum.FAILED)
 				.failLog("PARSE_ERROR: " + e.getMessage())
 				.build();
 		}
@@ -153,7 +155,7 @@ public class PortOnePaymentMapper {
 		return switch (status.toUpperCase()) {
 			case "READY" -> PaymentStatusEnum.IN_PROGRESS;
 			case "PAID" -> PaymentStatusEnum.SUCCESS;
-			case "CANCELLED" -> PaymentStatusEnum.CANCELED;
+			case "CANCELLED" -> PaymentStatusEnum.REFUND;
 			case "FAILED" -> PaymentStatusEnum.FAILED;
 			default -> null;
 		};
@@ -184,7 +186,7 @@ public class PortOnePaymentMapper {
 		if (reason != null) {
 			sb.append("reason=").append(reason).append(" ");
 		}
-		if (sb.length() == 0) {
+		if (sb.isEmpty()) {
 			sb.append("UNKNOWN_FAIL_RESPONSE: ").append(root.toString());
 		}
 

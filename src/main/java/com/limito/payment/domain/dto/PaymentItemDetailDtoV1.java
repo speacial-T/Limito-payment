@@ -2,9 +2,9 @@ package com.limito.payment.domain.dto;
 
 import java.util.UUID;
 
-import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +20,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class PaymentItemDetailDtoV1 {
-	CancelAndRefundStatusEnum cancelAndRefundStatus;
+	RefundStatusEnum refundStatus;
 	private UUID paymentItemId;
 	private Long sellerId;
 	private UUID orderItemId;

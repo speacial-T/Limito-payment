@@ -9,9 +9,9 @@ import java.util.UUID;
 
 import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
-import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,7 +65,7 @@ public class PaymentEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "cancel_status")
-	CancelAndRefundStatusEnum cancelAndRefundStatus;
+	RefundStatusEnum refundStatus;
 
 	@Column(name = "approved_at")
 	LocalDateTime approvedAt;
@@ -140,22 +140,22 @@ public class PaymentEntity {
 			throw new AppException(PAYMENT_IS_NOT_SUCCESS);
 		}
 
-		if (this.cancelAndRefundStatus == CancelAndRefundStatusEnum.CANCEL
-			|| this.cancelAndRefundStatus == CancelAndRefundStatusEnum.REFUND) {
-			log.info("{} 상태", cancelAndRefundStatus);
+		if (this.refundStatus == RefundStatusEnum.REFUND) {
+			log.info("{} 상태", refundStatus);
 			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
 
 	public void markAsCancelFailed(String failLog) {
-		this.cancelAndRefundStatus = CancelAndRefundStatusEnum.FAILED;
+		this.refundStatus = RefundStatusEnum.FAILED;
 		this.failLog = failLog;
 	}
 
-	public void cancelAndRefund(String refundReason, LocalDateTime refundAt,
-		CancelAndRefundStatusEnum cancelAndRefundStatus) {
+	public void refund(String refundReason, LocalDateTime refundAt,
+		RefundStatusEnum refundStatus) {
 		this.refundReason = refundReason;
-		this.cancelAndRefundStatus = cancelAndRefundStatus;
+		this.refundStatus = refundStatus;
+		this.paymentStatus = PaymentStatusEnum.REFUND;
 		this.refundAt = refundAt;
 	}
 }

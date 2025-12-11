@@ -54,7 +54,7 @@ public class PaymentItemMapper {
 			.productAmount(dto.getProductAmount())
 			.refundPrice(dto.getRefundPrice())
 			.status(dto.getStatus())
-			.cancelAndRefundStatus(dto.getCancelAndRefundStatus())
+			.refundStatus(dto.getRefundStatus())
 			.build();
 	}
 }
