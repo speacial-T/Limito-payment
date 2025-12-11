@@ -58,12 +58,13 @@ public class PaymentItemEntity {
 	@Column(name = "product_amount", nullable = false)
 	Integer productAmount;
 
-	@Column(name = "refund_price")
+	@Column(name = "refund_price", columnDefinition = "integer default 0")
 	Integer refundPrice;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	PaymentStatusEnum status;
+
 	@Enumerated(EnumType.STRING)
 	CancelAndRefundStatusEnum cancelAndRefundStatus;
 
