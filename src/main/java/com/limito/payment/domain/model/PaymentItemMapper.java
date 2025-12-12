@@ -3,7 +3,6 @@ package com.limito.payment.domain.model;
 import org.springframework.stereotype.Component;
 
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
-import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.infrastructure.dto.request.OrderItem;
 
 @Component
@@ -18,7 +17,6 @@ public class PaymentItemMapper {
 			.productName(orderItem.getProductName())
 			.productPrice(orderItem.getProductPrice())
 			.productAmount(orderItem.getQuantity())
-			.status(PaymentStatusEnum.IN_PROGRESS)
 			.build();
 	}
 
@@ -34,7 +32,6 @@ public class PaymentItemMapper {
 			.productName(entity.productName)
 			.productPrice(entity.productPrice != null ? entity.productPrice : 0)
 			.productAmount(entity.productAmount != null ? entity.productAmount : 0)
-			.refundPrice(entity.refundPrice)
 			.build();
 	}
 
@@ -51,8 +48,6 @@ public class PaymentItemMapper {
 			.productPrice(dto.getProductPrice())
 			.productType(dto.getProductType())
 			.productAmount(dto.getProductAmount())
-			.refundPrice(dto.getRefundPrice())
-			.refundStatus(dto.getRefundStatus())
 			.build();
 	}
 }

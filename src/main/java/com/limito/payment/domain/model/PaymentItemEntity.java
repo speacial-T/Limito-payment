@@ -2,9 +2,7 @@ package com.limito.payment.domain.model;
 
 import java.util.UUID;
 
-import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
-import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,22 +56,9 @@ public class PaymentItemEntity {
 	@Column(name = "product_amount", nullable = false)
 	Integer productAmount;
 
-	@Column(name = "refund_price", columnDefinition = "integer default 0")
-	Integer refundPrice;
-
-
-	@Enumerated(EnumType.STRING)
-	RefundStatusEnum refundStatus;
-
 	public void assignPayment(PaymentEntity payment) {
 		this.payment = payment;
 		this.payment.paymentId = payment.paymentId;
-	}
-
-
-	public void updateCancelAndRefundStatus(RefundStatusEnum status) {
-		this.refundStatus = status;
-		this.refundPrice = productPrice;
 	}
 
 }

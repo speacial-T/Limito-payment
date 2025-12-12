@@ -1,6 +1,9 @@
 server:
   port: 19097
 spring:
+  docker:
+    compose:
+      enabled: false
   application:
     name: payments-service
   datasource:

@@ -78,14 +78,10 @@ public class PaymentControllerV1 {
 		@PathVariable UUID orderId,
 		@RequestBody RefundPaymentRequestV1 request) {
 		PaymentRefundResponseDtoV1 responseDtoV1 = null;
-		try {
-			responseDtoV1 = paymentService.refundPayment(orderId, request);
+		responseDtoV1 = paymentService.refundPayment(orderId, request);
 
-		} catch (Exception e) {
-			log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불을 진행할 수 없습니다", orderId, request.getRefundReason(), e);
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-				.body(responseDtoV1);
-		}
-		return ResponseEntity.ok().build();
+		log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불을 진행할 수 없습니다", orderId, request.getRefundReason());
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+			.body(responseDtoV1);
 	}
 }

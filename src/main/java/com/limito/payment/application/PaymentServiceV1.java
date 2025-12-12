@@ -164,9 +164,8 @@ public class PaymentServiceV1 {
 
 		log.info("Payment cancellation/refund successful for orderId={}, refundAt={}, reason={}", orderId,
 			result.getRefundAt(), request.getRefundReason());
-		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus(), result.getFailLog() );
-		PaymentRefundResponseDtoV1 paymentRefundResponseDto = new PaymentRefundResponseDtoV1(
-			result.getPaymentStatus());
+		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus(), result.getFailLog());
+		PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
 		if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
 			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());
 
