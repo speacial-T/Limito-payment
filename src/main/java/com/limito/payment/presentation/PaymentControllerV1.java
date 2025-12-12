@@ -77,11 +77,7 @@ public class PaymentControllerV1 {
 	public ResponseEntity<PaymentRefundResponseDtoV1> refundPayment(
 		@PathVariable UUID orderId,
 		@RequestBody RefundPaymentRequestV1 request) {
-		PaymentRefundResponseDtoV1 responseDtoV1 = null;
-		responseDtoV1 = paymentService.refundPayment(orderId, request);
-
-		log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불을 진행할 수 없습니다", orderId, request.getRefundReason());
-		return ResponseEntity.status(HttpStatus.CONFLICT)
-			.body(responseDtoV1);
+		PaymentRefundResponseDtoV1 responseDtoV1 = paymentService.refundPayment(orderId, request);
+		return ResponseEntity.ok(responseDtoV1);
 	}
 }

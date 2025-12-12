@@ -162,13 +162,12 @@ public class PaymentServiceV1 {
 		String rawJson = portOneWebClient.cancelPayment(detailDtoV1.getPaymentKey(), request.getRefundReason());
 		PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
 
-		log.info("Payment cancellation/refund successful for orderId={}, refundAt={}, reason={}", orderId,
+		log.info("Payment refund successful for orderId={}, refundAt={}, reason={}", orderId,
 			result.getRefundAt(), request.getRefundReason());
 		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus(), result.getFailLog());
 		PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
 		if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
 			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());
-
 			try {
 				if (type == ProductTypeEnum.LIMITED) {
 					orderClient.notifyPaymentRefundLimitedSuccess(orderId, paymentRefundResponseDto);
