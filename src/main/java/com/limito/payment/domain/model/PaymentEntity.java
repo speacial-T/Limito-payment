@@ -134,7 +134,7 @@ public class PaymentEntity {
 		}
 	}
 
-	public void validateCanCancelOrRefund() {
+	public void validateCanRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
 			log.info("결제 완료 상태 아님");
 			throw new AppException(PAYMENT_IS_NOT_SUCCESS);
@@ -145,17 +145,12 @@ public class PaymentEntity {
 			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
-
-	public void markAsCancelFailed(String failLog) {
-		this.refundStatus = RefundStatusEnum.FAILED;
-		this.failLog = failLog;
-	}
-
 	public void refund(String refundReason, LocalDateTime refundAt,
-		RefundStatusEnum refundStatus) {
+		RefundStatusEnum refundStatus, String failLog) {
 		this.refundReason = refundReason;
 		this.refundStatus = refundStatus;
 		this.paymentStatus = PaymentStatusEnum.REFUND;
 		this.refundAt = refundAt;
+		this.failLog = failLog;
 	}
 }

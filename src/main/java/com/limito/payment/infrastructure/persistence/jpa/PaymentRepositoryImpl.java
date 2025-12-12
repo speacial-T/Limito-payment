@@ -22,9 +22,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
 	@Transactional(readOnly = true)
 	@Override
-	public PaymentEntity getByOrderId(UUID orderId) {
+	public PaymentEntity findByOrderId(UUID orderId) {
 		return paymentJpaRepository.findByOrderIdWithItems(orderId)
-			.orElseThrow(() -> new AppException(PAYMENT_NOT_FOUND));
+			.orElseThrow(() -> AppException.of(PAYMENT_NOT_FOUND));
 
 	}
 

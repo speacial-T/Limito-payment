@@ -26,13 +26,6 @@ public interface PaymentItemJpaRepository extends JpaRepository<PaymentItemEntit
 		""")*/
 	List<PaymentItemEntity> findAllByPaymentPaymentId(UUID paymentId);
 
-	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	@Query("""
-		update PaymentItemEntity pi
-		set pi.status = :status
-		where pi.payment.paymentId = :paymentId
-		""")
-	int updateStatusByPaymentId(UUID paymentId, PaymentStatusEnum status);
 
 	@Query("""
 		select pi.productType

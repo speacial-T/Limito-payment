@@ -35,7 +35,6 @@ public class PaymentItemMapper {
 			.productPrice(entity.productPrice != null ? entity.productPrice : 0)
 			.productAmount(entity.productAmount != null ? entity.productAmount : 0)
 			.refundPrice(entity.refundPrice)
-			.status(entity.status)
 			.build();
 	}
 
@@ -53,7 +52,6 @@ public class PaymentItemMapper {
 			.productType(dto.getProductType())
 			.productAmount(dto.getProductAmount())
 			.refundPrice(dto.getRefundPrice())
-			.status(dto.getStatus())
 			.refundStatus(dto.getRefundStatus())
 			.build();
 	}

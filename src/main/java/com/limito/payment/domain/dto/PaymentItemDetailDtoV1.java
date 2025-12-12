@@ -29,5 +29,4 @@ public class PaymentItemDetailDtoV1 {
 	private int productPrice;
 	private int productAmount;
 	private Integer refundPrice;
-	private PaymentStatusEnum status;
 }

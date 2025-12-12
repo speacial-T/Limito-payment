@@ -45,8 +45,4 @@ public class PaymentItemRepositoryImpl implements PaymentItemRepository {
 		return paymentItemJpaRepository.findProductTypeByPaymentId(paymentId);
 	}
 
-	@Override
-	public int updateStatusByPaymentId(UUID paymentId, PaymentStatusEnum status) {
-		return paymentItemJpaRepository.updateStatusByPaymentId(paymentId, status);
-	}
 }

@@ -61,9 +61,6 @@ public class PaymentItemEntity {
 	@Column(name = "refund_price", columnDefinition = "integer default 0")
 	Integer refundPrice;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	PaymentStatusEnum status;
 
 	@Enumerated(EnumType.STRING)
 	RefundStatusEnum refundStatus;
@@ -73,9 +70,6 @@ public class PaymentItemEntity {
 		this.payment.paymentId = payment.paymentId;
 	}
 
-	public void updateStatus(PaymentStatusEnum status) {
-		this.status = status;
-	}
 
 	public void updateCancelAndRefundStatus(RefundStatusEnum status) {
 		this.refundStatus = status;

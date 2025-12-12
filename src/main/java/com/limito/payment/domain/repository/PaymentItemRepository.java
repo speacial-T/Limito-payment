@@ -19,6 +19,4 @@ public interface PaymentItemRepository {
 	@Transactional(readOnly = true)
 	ProductTypeEnum getProductTypeByPaymentId(UUID paymentId);
 
-	@Transactional
-	int updateStatusByPaymentId(UUID paymentId, PaymentStatusEnum status);
 }

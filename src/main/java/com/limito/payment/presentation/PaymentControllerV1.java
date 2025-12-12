@@ -19,6 +19,7 @@ import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.request.RefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
+import com.limito.payment.presentation.dto.response.PaymentRefundResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,15 +74,17 @@ public class PaymentControllerV1 {
 	}
 
 	@PostMapping("/{orderId}/refund")
-	public ResponseEntity<Object> refundPayment(
+	public ResponseEntity<PaymentRefundResponseDtoV1> refundPayment(
 		@PathVariable UUID orderId,
 		@RequestBody RefundPaymentRequestV1 request) {
+		PaymentRefundResponseDtoV1 responseDtoV1 = null;
 		try {
-			paymentService.refundPayment(orderId, request);
+			responseDtoV1 = paymentService.refundPayment(orderId, request);
+
 		} catch (Exception e) {
 			log.warn("주문 아이디 orderId={}에 대해 {}을 이유로 결제 환불을 진행할 수 없습니다", orderId, request.getRefundReason(), e);
 			return ResponseEntity.status(HttpStatus.CONFLICT)
-				.body(request);
+				.body(responseDtoV1);
 		}
 		return ResponseEntity.ok().build();
 	}

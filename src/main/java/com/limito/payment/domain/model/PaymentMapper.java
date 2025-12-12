@@ -11,6 +11,7 @@ import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
+import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 
@@ -98,5 +99,14 @@ public class PaymentMapper {
 		}
 
 		return builder.build();
+	}
+	public PaymentConfirmResponseDtoV1 forConfirmResponse(PaymentDetailDtoV1 detailDto){
+
+	return PaymentConfirmResponseDtoV1.builder()
+		.orderId(detailDto.getOrderId())
+		.paymentStatus(detailDto.getPaymentStatus())
+		.paymentMethod(detailDto.getPaymentMethod())
+		.approvedAt(detailDto.getApprovedAt())
+		.build();
 	}
 }
