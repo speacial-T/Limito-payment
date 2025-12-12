@@ -12,5 +12,4 @@ public enum PaymentMethodEnum {
 	EASY_PAY_T_PAY("간편결제-토스페이");
 
 	private final String description;
-	
 }

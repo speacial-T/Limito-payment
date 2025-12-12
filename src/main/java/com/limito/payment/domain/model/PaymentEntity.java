@@ -9,9 +9,9 @@ import java.util.UUID;
 
 import com.limito.common.exception.AppException;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
-import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +27,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Entity
 @Table(name = "p_payments")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -63,7 +65,7 @@ public class PaymentEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "cancel_status")
-	CancelAndRefundStatusEnum cancelAndRefundStatus;
+	RefundStatusEnum refundStatus;
 
 	@Column(name = "approved_at")
 	LocalDateTime approvedAt;
@@ -103,57 +105,52 @@ public class PaymentEntity {
 	}
 
 	public void handlePgCallback(PaymentDetailDtoV1 extra) {
-		if (extra.getPaymentKey() != null)
+		if (extra.getPaymentKey() != null) {
 			this.paymentKey = extra.getPaymentKey();
-		if (extra.getPaymentStatus() != null)
+		}
+		if (extra.getPaymentStatus() != null) {
 			this.paymentStatus = extra.getPaymentStatus();
-		if (extra.getCardName() != null)
+		}
+		if (extra.getCardName() != null) {
 			this.cardName = extra.getCardName();
-		if (extra.getPgProvider() != null)
+		}
+		if (extra.getPgProvider() != null) {
 			this.pgProvider = extra.getPgProvider();
-		if (extra.getCardNum() != null)
+		}
+		if (extra.getCardNum() != null) {
 			this.cardNum = extra.getCardNum();
-		if (extra.getPaymentMethod() != null)
+		}
+		if (extra.getPaymentMethod() != null) {
 			this.paymentMethod = extra.getPaymentMethod();
-		if (extra.getFailLog() != null)
+		}
+		if (extra.getFailLog() != null) {
 			this.failLog = extra.getFailLog();
-		if (extra.getApprovedAt() != null)
+		}
+		if (extra.getApprovedAt() != null) {
 			this.approvedAt = extra.getApprovedAt();
-		if (extra.getRefundAt() != null)
+		}
+		if (extra.getRefundAt() != null) {
 			this.refundAt = extra.getRefundAt();
-	}
-
-	private void validateCanApprove() {
-		if (this.paymentStatus != PaymentStatusEnum.IN_PROGRESS) {
-			throw new AppException(PAYMENT_CAN_NOT_CONFIRM);
 		}
 	}
 
-	private void validateCanCancelOrRefund() {
+	public void validateCanRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
+			log.info("결제 완료 상태 아님");
+			throw new AppException(PAYMENT_IS_NOT_SUCCESS);
+		}
+
+		if (this.refundStatus == RefundStatusEnum.REFUND) {
+			log.info("{} 상태", refundStatus);
 			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
-
-	public void markAsFailed(String failLog) {
-		this.paymentStatus = PaymentStatusEnum.FAILED;
-		this.failLog = failLog;
-	}
-
-	public void markAsCancelFailed(String failLog) {
-		this.cancelAndRefundStatus = CancelAndRefundStatusEnum.FAILED;
-		this.failLog = failLog;
-	}
-
-	public void cancelAndRefund(String refundReason, LocalDateTime refundAt,
-		CancelAndRefundStatusEnum cancelAndRefundStatus) {
+	public void refund(String refundReason, LocalDateTime refundAt,
+		RefundStatusEnum refundStatus, String failLog) {
 		this.refundReason = refundReason;
-		this.cancelAndRefundStatus = cancelAndRefundStatus;
+		this.refundStatus = refundStatus;
+		this.paymentStatus = PaymentStatusEnum.REFUND;
 		this.refundAt = refundAt;
+		this.failLog = failLog;
 	}
-
-	public void updatePaymentStatus(PaymentStatusEnum paymentStatus) {
-		this.paymentStatus = paymentStatus;
-	}
-
 }

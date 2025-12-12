@@ -59,11 +59,7 @@ public class PortOneClient {
 			.bodyValue(requestBody)
 			.retrieve()
 			.bodyToMono(String.class)
-			.onErrorResume(e -> {
-				log.error("PortOne 결제 취소 실패 paymentId={}, message={}", paymentId, e.getMessage());
-				return Mono.error(e);
-			})
-			.block();
+			.block(); // 예외 그대로 서비스 레이어로 전달됨
 
 		return response;
 	}

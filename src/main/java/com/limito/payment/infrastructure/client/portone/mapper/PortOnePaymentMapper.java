@@ -1,6 +1,8 @@
 package com.limito.payment.infrastructure.client.portone.mapper;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import org.springframework.stereotype.Component;
@@ -10,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +69,9 @@ public class PortOnePaymentMapper {
 				}
 				case "PaymentMethodEasyPay" -> {
 					easyPayProvider = root.path("method").path("provider").asText(null);
+					pgProvider = root.path("channel")
+						.path("pgProvider")
+						.asText(null);
 					log.info("method=EASY_PAY, easyPayProvider={}", easyPayProvider);
 
 				}
@@ -89,7 +95,7 @@ public class PortOnePaymentMapper {
 				log.info("mapped easyPayProvider={} to method={}", easyPayProvider, method);
 			}
 			return PaymentDetailDtoV1.builder()
-				.paymentStatus(convertStatus(status))
+				.paymentStatus(convertConfirmStatus(status))
 				.paymentKey(paymentKey)
 				.cardName(cardName)
 				.cardNum(cardNum)
@@ -105,16 +111,85 @@ public class PortOnePaymentMapper {
 		}
 	}
 
-	private PaymentStatusEnum convertStatus(String status) {
-		if (status == null)
+	public PaymentDetailDtoV1 extractCancelInfo(String json) {
+		try {
+			JsonNode root = objectMapper.readTree(json);
+
+			JsonNode cancellationNode = root.path("cancellation");
+			String cancelledAtText = cancellationNode.path("cancelledAt").asText(null);
+
+			// 정상적으로 취소된 경우
+			if (cancelledAtText != null) {
+				return PaymentDetailDtoV1.builder()
+					.refundAt(Instant.parse(cancelledAtText)
+						.atZone(ZoneId.of("Asia/Seoul"))
+						.toLocalDateTime())
+					.refundStatus(RefundStatusEnum.REFUND)
+					.paymentStatus(PaymentStatusEnum.REFUND)
+					.build();
+			}
+
+			// 실패한 경우 — failLog 추출
+			String failLog = extractFailLog(root);
+
+			return PaymentDetailDtoV1.builder()
+				.refundStatus(RefundStatusEnum.FAILED)
+				.failLog(failLog)
+				.build();
+
+		} catch (Exception e) {
+			log.error("Failed to parse PortOne cancel JSON", e);
+
+			return PaymentDetailDtoV1.builder()
+				.refundStatus(RefundStatusEnum.FAILED)
+				.failLog("PARSE_ERROR: " + e.getMessage())
+				.build();
+		}
+	}
+
+	private PaymentStatusEnum convertConfirmStatus(String status) {
+		if (status == null) {
 			return null;
+		}
 		// TODO: refactor - switch
 		return switch (status.toUpperCase()) {
 			case "READY" -> PaymentStatusEnum.IN_PROGRESS;
 			case "PAID" -> PaymentStatusEnum.SUCCESS;
-			case "CANCELLED" -> PaymentStatusEnum.CANCELED;
+			case "CANCELLED" -> PaymentStatusEnum.REFUND;
 			case "FAILED" -> PaymentStatusEnum.FAILED;
 			default -> null;
 		};
+	}
+
+	private String extractFailLog(JsonNode root) {
+
+		String type = root.path("type").asText(null);
+		String message = root.path("message").asText(null);
+		String code = root.path("code").asText(null);
+		String status = root.path("status").asText(null);
+		String reason = root.path("reason").asText(null);
+
+		StringBuilder sb = new StringBuilder();
+
+		if (type != null) {
+			sb.append("type=").append(type).append(" ");
+		}
+		if (message != null) {
+			sb.append("message=").append(message).append(" ");
+		}
+		if (code != null) {
+			sb.append("code=").append(code).append(" ");
+		}
+		if (status != null) {
+			sb.append("status=").append(status).append(" ");
+		}
+		if (reason != null) {
+			sb.append("reason=").append(reason).append(" ");
+		}
+		if (sb.isEmpty()) {
+			sb.append("UNKNOWN_FAIL_RESPONSE: ").append(root.toString());
+		}
+
+		return sb.toString().trim();
 	}
 }

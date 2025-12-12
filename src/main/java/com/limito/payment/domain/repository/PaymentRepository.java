@@ -8,7 +8,7 @@ import com.limito.payment.domain.model.PaymentEntity;
 
 public interface PaymentRepository {
 	@Transactional()
-	PaymentEntity getByOrderId(UUID orderId);
+	PaymentEntity findByOrderId(UUID orderId);
 
 	@Transactional()
 	PaymentEntity save(PaymentEntity payment);

@@ -3,6 +3,7 @@ package com.limito.payment.presentation;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.limito.payment.application.PaymentServiceV1;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
+import com.limito.payment.presentation.dto.request.RefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
+import com.limito.payment.presentation.dto.response.PaymentRefundResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,5 +71,13 @@ public class PaymentControllerV1 {
 	) {
 		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(UUID.fromString(orderId));
 		return ResponseEntity.ok(paymentDto);
+	}
+
+	@PostMapping("/{orderId}/refund")
+	public ResponseEntity<PaymentRefundResponseDtoV1> refundPayment(
+		@PathVariable UUID orderId,
+		@RequestBody RefundPaymentRequestV1 request) {
+		PaymentRefundResponseDtoV1 responseDtoV1 = paymentService.refundPayment(orderId, request);
+		return ResponseEntity.ok(responseDtoV1);
 	}
 }

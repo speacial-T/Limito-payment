@@ -11,6 +11,8 @@ import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
+import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
+import com.limito.payment.presentation.dto.response.PaymentRefundResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,9 +32,9 @@ public class PaymentMapper {
 	}
 
 	public PaymentEntity toEntity(PaymentDetailDtoV1 dto) {
-		if (dto == null)
+		if (dto == null) {
 			return null;
-
+		}
 		PaymentEntity entity = PaymentEntity.builder()
 			.paymentId(dto.getPaymentId())
 			.orderId(dto.getOrderId())
@@ -41,7 +43,7 @@ public class PaymentMapper {
 			.itemSummary(dto.getItemSummary())
 			.totalPrice(Integer.valueOf(dto.getTotalPrice()))
 			.refundReason(dto.getRefundReason())
-			.cancelAndRefundStatus(dto.getCancelAndRefundStatus())
+			.refundStatus(dto.getRefundStatus())
 			.approvedAt(dto.getApprovedAt())
 			.refundAt(dto.getRefundAt())
 			.failLog(dto.getFailLog())
@@ -67,9 +69,9 @@ public class PaymentMapper {
 	}
 
 	public PaymentDetailDtoV1 toDto(PaymentEntity entity) {
-		if (entity == null)
+		if (entity == null) {
 			return null;
-
+		}
 		PaymentDetailDtoV1.PaymentDetailDtoV1Builder builder = PaymentDetailDtoV1.builder()
 			.paymentId(entity.paymentId)
 			.orderId(entity.orderId)
@@ -78,7 +80,7 @@ public class PaymentMapper {
 			.itemSummary(entity.itemSummary)
 			.totalPrice(entity.totalPrice != null ? entity.totalPrice : 0)
 			.refundReason(entity.refundReason)
-			.cancelAndRefundStatus(entity.cancelAndRefundStatus)
+			.refundStatus(entity.refundStatus)
 			.approvedAt(entity.approvedAt)
 			.refundAt(entity.refundAt)
 			.failLog(entity.failLog)
@@ -98,5 +100,19 @@ public class PaymentMapper {
 		}
 
 		return builder.build();
+	}
+
+	public PaymentConfirmResponseDtoV1 forConfirmResponse(PaymentDetailDtoV1 detailDto) {
+
+		return PaymentConfirmResponseDtoV1.builder()
+			.orderId(detailDto.getOrderId())
+			.paymentStatus(detailDto.getPaymentStatus())
+			.paymentMethod(detailDto.getPaymentMethod())
+			.approvedAt(detailDto.getApprovedAt())
+			.build();
+	}
+
+	public PaymentRefundResponseDtoV1 forRefundResponse(PaymentDetailDtoV1 dtoV1) {
+		return new PaymentRefundResponseDtoV1(dtoV1.getPaymentStatus());
 	}
 }

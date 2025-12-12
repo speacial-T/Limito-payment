@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.limito.payment.domain.enums.CancelAndRefundStatusEnum;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,7 +38,7 @@ public class PaymentDetailDtoV1 {
 
 	private String refundReason;
 
-	private CancelAndRefundStatusEnum cancelAndRefundStatus;
+	private RefundStatusEnum refundStatus;
 
 	private LocalDateTime approvedAt;
 

@@ -5,6 +5,7 @@ import static com.limito.payment.domain.exception.PaymentErrorCode.*;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +26,10 @@ import com.limito.payment.infrastructure.client.portone.mapper.PortOnePaymentMap
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 import com.limito.payment.infrastructure.dto.request.OrderItem;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
+import com.limito.payment.presentation.dto.request.RefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
+import com.limito.payment.presentation.dto.response.PaymentRefundResponseDtoV1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +53,7 @@ public class PaymentServiceV1 {
 		UUID orderId
 	) {
 		PortOneConfirmPaymentRequest request = new PortOneConfirmPaymentRequest();
-		PaymentDetailDtoV1 payment = paymentMapper.toDto(paymentRepository.getByOrderId(orderId));
+		PaymentDetailDtoV1 payment = paymentMapper.toDto(paymentRepository.findByOrderId(orderId));
 
 		List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(payment.getPaymentId())
 			.stream()
@@ -76,7 +79,8 @@ public class PaymentServiceV1 {
 	public void validPaymentRequest(UUID orderId, CreatePaymentRequestV1 request) {
 		if (paymentRepository.hasPaymentByOrderId(orderId)) {
 			log.warn("Duplicate payment request for orderId={}", orderId);
-			throw new AppException(PAYMENT_DUPLICATE_ORDER);
+			throw AppException.of(PAYMENT_DUPLICATE_ORDER);
+
 		}
 		int totalCalculatedPrice = request.getItems().stream()
 			.mapToInt(item -> item.getProductPrice() * item.getQuantity())
@@ -84,7 +88,7 @@ public class PaymentServiceV1 {
 		if (request.getTotalPrice() != totalCalculatedPrice) {
 			log.warn("Payment total price mismatch for orderId={}: expected={}, actual={}",
 				orderId, totalCalculatedPrice, request.getTotalPrice());
-			throw new AppException(PAYMENT_TOTAL_PRICE_ERROR);
+			throw AppException.of(PAYMENT_TOTAL_PRICE_ERROR);
 		}
 	}
 
@@ -114,22 +118,18 @@ public class PaymentServiceV1 {
 
 		log.info("[confirmPayment] paymentKey={}, orderId={}", paymentKey, response.getOrderId());
 		UUID orderId = UUID.fromString(response.getOrderId());
-		PaymentEntity payment = paymentRepository.getByOrderId(orderId);
+		PaymentEntity payment = paymentRepository.findByOrderId(orderId);
 		if (payment == null) {
 			throw new AppException(PAYMENT_NOT_FOUND);
 		}
 
 		String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
 		PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
-		List<PaymentItemEntity> items =
-			paymentItemRepository.getPaymentItems(payment.internalId());
-		List<PaymentItemDetailDtoV1> dtoList = items.stream()
-			.map(paymentItemMapper::toDto)
-			.toList();
 		//주문 서비스로 결과 전달
 		// TODO: refactor - if/else
 		if (extra.getPaymentStatus() == PaymentStatusEnum.SUCCESS) {
-			if(dtoList.get(0).getProductType()== ProductTypeEnum.LIMITED){
+			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(payment.internalId());
+			if (type == ProductTypeEnum.LIMITED) {
 				orderClient.notifyPaymentLimitedSuccess(orderId);
 			} else {
 				orderClient.notifyPaymentResellSuccess(orderId);
@@ -141,26 +141,44 @@ public class PaymentServiceV1 {
 		payment.handlePgCallback(extra);
 		paymentRepository.save(payment);
 
-		log.debug("[confirmPayment] loaded paymentItems={}", items);
-
-		items.forEach(item -> {
-			item.updateStatus(extra.getPaymentStatus());
-			item.assignPayment(payment);
-		});
-
-		paymentItemRepository.saveAll(items);
 		PaymentDetailDtoV1 paymentDetail = paymentMapper.toDto(payment);
-		PaymentConfirmResponseDtoV1 result = PaymentConfirmResponseDtoV1.builder()
-			.orderId(paymentDetail.getOrderId())
-			.paymentStatus(paymentDetail.getPaymentStatus())
-			.paymentMethod(paymentDetail.getPaymentMethod())
-			.approvedAt(paymentDetail.getApprovedAt())
-			.build();
-		return result;
+		return paymentMapper.forConfirmResponse(paymentDetail);
 	}
 
 	@Transactional(readOnly = true)
 	public PaymentDetailDtoV1 getPaymentInfoByOrderId(UUID orderId) {
-		return paymentMapper.toDto(paymentRepository.getByOrderId(orderId));
+		return paymentMapper.toDto(paymentRepository.findByOrderId(orderId));
 	}
+
+	@Transactional
+	public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) {
+
+		PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+
+		payment.validateCanRefund();
+
+		PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
+
+		String rawJson = portOneWebClient.cancelPayment(detailDtoV1.getPaymentKey(), request.getRefundReason());
+		PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
+
+		log.info("Payment refund successful for orderId={}, refundAt={}, reason={}", orderId,
+			result.getRefundAt(), request.getRefundReason());
+		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus(), result.getFailLog());
+		PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
+		if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
+			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());
+			try {
+				if (type == ProductTypeEnum.LIMITED) {
+					orderClient.notifyPaymentRefundLimitedSuccess(orderId, paymentRefundResponseDto);
+				} else {
+					orderClient.notifyPaymentRefundResellSuccess(orderId, paymentRefundResponseDto);
+				}
+			} catch (AppException e) {
+				throw AppException.of(HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
+			}
+		}
+		return paymentRefundResponseDto;
+	}
+
 }
