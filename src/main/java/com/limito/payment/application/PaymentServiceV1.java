@@ -164,7 +164,7 @@ public class PaymentServiceV1 {
 
 		log.info("Payment refund successful for orderId={}, refundAt={}, reason={}", orderId,
 			result.getRefundAt(), request.getRefundReason());
-		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus(), result.getFailLog());
+		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus());
 		PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
 		if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
 			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());

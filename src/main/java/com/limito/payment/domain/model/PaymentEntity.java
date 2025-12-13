@@ -145,12 +145,12 @@ public class PaymentEntity {
 			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
+
 	public void refund(String refundReason, LocalDateTime refundAt,
-		RefundStatusEnum refundStatus, String failLog) {
+		RefundStatusEnum refundStatus) {
 		this.refundReason = refundReason;
 		this.refundStatus = refundStatus;
 		this.paymentStatus = PaymentStatusEnum.REFUND;
 		this.refundAt = refundAt;
-		this.failLog = failLog;
 	}
 }

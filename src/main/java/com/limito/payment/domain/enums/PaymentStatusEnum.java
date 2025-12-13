@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum PaymentStatusEnum {
 	IN_PROGRESS("결제 요청 진행중"),
 	SUCCESS("결제 완료"),
+	COMPENSATING("환불 처리중"),
 	REFUND("환불"),
 	FAILED("결제 실패");
 	private final String description;
