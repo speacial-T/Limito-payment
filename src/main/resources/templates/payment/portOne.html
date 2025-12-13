@@ -132,6 +132,22 @@
                 if (payment.code != null) {
                     this.setWaitingPayment(false)
                     console.log(payment)
+                    const orderId = orderData.orderId
+
+                    fetch(`/api/v1/payments/${orderId}/fail-log`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            code: payment.code,
+                            message: payment.message,
+                            paymentId: payment.paymentId
+                        })
+                    }).catch(error => {
+                        console.error('결제 실패 로그 전송 실패', error)
+                    })
+
                     this.openFailDialog(payment.message)
                     return
                 }

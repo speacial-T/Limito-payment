@@ -3,7 +3,6 @@ package com.limito.payment.presentation;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.limito.payment.application.PaymentServiceV1;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
+import com.limito.payment.presentation.dto.FailLogPaymentResponseV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.request.RefundPaymentRequestV1;
 import com.limito.payment.presentation.dto.response.ConfirmPaymentResponseV1;
@@ -63,6 +63,15 @@ public class PaymentControllerV1 {
 		log.info("PaymentControllerV1.confirmPayment success response= {}", response);
 
 		return ResponseEntity.ok(result);
+	}
+
+	@PostMapping("/{orderId}/fail-log")
+	public ResponseEntity<FailLogPaymentResponseV1> logPayment(
+		@PathVariable("orderId") UUID orderId,
+		@RequestBody FailLogPaymentResponseV1 response
+	) {
+		log.info("PaymentControllerV1.logPayment response= {}", response);
+		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/{orderId}")
