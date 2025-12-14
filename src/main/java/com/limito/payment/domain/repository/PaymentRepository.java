@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.limito.payment.domain.model.PaymentEntity;
 
 public interface PaymentRepository {
-	@Transactional()
+	@Transactional(readOnly = true)
 	PaymentEntity findByOrderId(UUID orderId);
 
 	@Transactional()

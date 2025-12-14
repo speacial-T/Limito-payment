@@ -13,6 +13,7 @@ import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.RefundStatusEnum;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -73,9 +74,6 @@ public class PaymentEntity {
 	@Column(name = "refund_at")
 	LocalDateTime refundAt;
 
-	@Column(name = "fail_log", length = 100)
-	String failLog;
-
 	@Enumerated(EnumType.STRING)
 	@Column(name = "payment_method")
 	PaymentMethodEnum paymentMethod;
@@ -89,9 +87,13 @@ public class PaymentEntity {
 	@Column(name = "pg_provider", length = 50)
 	String pgProvider;
 
-	@OneToMany(mappedBy = "payment")
+	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
 	@Builder.Default
 	List<PaymentItemEntity> items = new ArrayList<>();
+
+	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	List<PaymentLogEntity> logs = new ArrayList<>();
 
 	public UUID internalId() {
 		return this.paymentId;
@@ -102,6 +104,20 @@ public class PaymentEntity {
 			this.items.add(item);
 			item.assignPayment(this);
 		});
+	}
+
+	public void addLogs(List<PaymentLogEntity> newLogs) {
+		newLogs.forEach(log -> {
+			this.logs.add(log);
+			log.assignPayment(this);
+		});
+	}
+
+	public boolean isConfirmProcessed() {
+		return paymentStatus == PaymentStatusEnum.SUCCESS
+			|| paymentStatus == PaymentStatusEnum.FAILED
+			|| paymentStatus == PaymentStatusEnum.COMPENSATING
+			|| paymentStatus == PaymentStatusEnum.REFUND;
 	}
 
 	public void handlePgCallback(PaymentDetailDtoV1 extra) {
@@ -123,9 +139,6 @@ public class PaymentEntity {
 		if (extra.getPaymentMethod() != null) {
 			this.paymentMethod = extra.getPaymentMethod();
 		}
-		if (extra.getFailLog() != null) {
-			this.failLog = extra.getFailLog();
-		}
 		if (extra.getApprovedAt() != null) {
 			this.approvedAt = extra.getApprovedAt();
 		}
@@ -137,12 +150,12 @@ public class PaymentEntity {
 	public void validateCanRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
 			log.info("결제 완료 상태 아님");
-			throw new AppException(PAYMENT_IS_NOT_SUCCESS);
+			throw AppException.of(PAYMENT_IS_NOT_SUCCESS);
 		}
 
 		if (this.refundStatus == RefundStatusEnum.REFUND) {
 			log.info("{} 상태", refundStatus);
-			throw new AppException(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
+			throw AppException.of(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
 		}
 	}
 

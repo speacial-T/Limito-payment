@@ -57,4 +57,6 @@ public class PaymentDetailDtoV1 {
 	@Builder.Default
 	private List<PaymentItemDetailDtoV1> items = new ArrayList<>();
 
+	@Builder.Default
+	private List<PaymentLogDetailDtoV1> logs = new ArrayList<>();
 }

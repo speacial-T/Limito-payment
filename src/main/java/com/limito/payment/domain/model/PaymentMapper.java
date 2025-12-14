@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 import com.limito.payment.presentation.dto.response.PaymentConfirmResponseDtoV1;
 import com.limito.payment.presentation.dto.response.PaymentRefundResponseDtoV1;
@@ -21,13 +22,14 @@ import lombok.RequiredArgsConstructor;
 public class PaymentMapper {
 
 	private final PaymentItemMapper itemMapper;
+	private final PaymentLogMapper logMapper;
 
 	public static PaymentEntity create(UUID orderId, CreatePaymentRequestV1 request) {
 		return new PaymentEntity(
 			null, orderId, PaymentStatusEnum.IN_PROGRESS,
 			null, request.getItemSummary(), request.getTotalPrice(),
-			null, null, null, null, null,
-			null, null, null, null, new ArrayList<>()
+			null, RefundStatusEnum.NOT_REQUESTED, null, null, null,
+			null, null, null, new ArrayList<>(), new ArrayList<>()
 		);
 	}
 
@@ -46,7 +48,6 @@ public class PaymentMapper {
 			.refundStatus(dto.getRefundStatus())
 			.approvedAt(dto.getApprovedAt())
 			.refundAt(dto.getRefundAt())
-			.failLog(dto.getFailLog())
 			.paymentMethod(dto.getPaymentMethod())
 			.cardNum(dto.getCardNum())
 			.cardName(dto.getCardName())
@@ -63,6 +64,16 @@ public class PaymentMapper {
 		if (!items.isEmpty()) {
 			items.forEach(item -> item.assignPayment(entity));
 			entity.items.addAll(items);
+		}
+		List<PaymentLogEntity> logs = dto.getLogs() == null ? List.of()
+			: dto.getLogs().stream()
+			.filter(java.util.Objects::nonNull)
+			.map(logMapper::toEntity)
+			.collect(Collectors.toList());
+
+		if (!logs.isEmpty()) {
+			logs.forEach(log -> log.assignPayment(entity));
+			entity.logs.addAll(logs);
 		}
 
 		return entity;
@@ -83,7 +94,6 @@ public class PaymentMapper {
 			.refundStatus(entity.refundStatus)
 			.approvedAt(entity.approvedAt)
 			.refundAt(entity.refundAt)
-			.failLog(entity.failLog)
 			.paymentMethod(entity.paymentMethod)
 			.cardNum(entity.cardNum)
 			.cardName(entity.cardName)
