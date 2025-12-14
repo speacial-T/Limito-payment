@@ -13,5 +13,5 @@ public interface PaymentLogRepository {
 	PaymentLogEntity save(PaymentLogEntity paymentLog);
 
 	@Transactional(readOnly = true)
-	List<PaymentLogEntity> findByPaymentId(UUID paymentId);
+	List<PaymentLogEntity> findAllByPaymentPaymentId(UUID paymentId);
 }

@@ -35,11 +35,11 @@ public class PaymentLogEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	@Column(name = "payment_log_id")
+	@Column(name = "payment_log_id", columnDefinition = "UUID")
 	UUID paymentLogId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "payment_id", nullable = false, columnDefinition = "UUID")
+	@JoinColumn(name = "payment_id", nullable = false)
 	PaymentEntity payment;
 
 	@Enumerated(EnumType.STRING)
@@ -57,11 +57,11 @@ public class PaymentLogEntity {
 	@Column(name = "pg_transaction_id", length = 100)
 	String pgTransactionId;
 
-	@Column(name = "pg_provider", length = 50, nullable = false)
+	@Column(name = "pg_provider", length = 50)
 	String pgProvider;
 
 	// 멱등성 / 재시도
-	@Column(name = "idempotency_key", length = 100, nullable = false)
+	@Column(name = "idempotency_key", length = 100, unique = true)
 	String idempotencyKey;
 
 	@Column(name = "retry_count", nullable = false)

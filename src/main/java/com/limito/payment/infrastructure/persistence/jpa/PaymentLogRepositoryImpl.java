@@ -22,7 +22,7 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
 	}
 
 	@Override
-	public List<PaymentLogEntity> findByPaymentId(UUID paymentId) {
-		return paymentLogJpaRepository.findByPaymentId(paymentId);
+	public List<PaymentLogEntity> findAllByPaymentPaymentId(UUID paymentId) {
+		return paymentLogJpaRepository.findAllByPaymentPaymentId(paymentId);
 	}
 }

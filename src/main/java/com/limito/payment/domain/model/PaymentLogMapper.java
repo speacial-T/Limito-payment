@@ -1,8 +1,13 @@
 package com.limito.payment.domain.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.limito.payment.domain.dto.PaymentLogDetailDtoV1;
+import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 
 import lombok.RequiredArgsConstructor;
 
@@ -58,5 +63,16 @@ public class PaymentLogMapper {
 			.responsePayload(dto.getResponsePayload())
 			.createdAt(dto.getCreatedAt())
 			.build();
+	}
+
+	public List<PaymentLogEntity> create(PaymentEntity payment) {
+		PaymentLogEntity log = PaymentLogEntity.builder()
+			.paymentStatus(PaymentStatusEnum.IN_PROGRESS)
+			.refundStatus(RefundStatusEnum.NOT_REQUESTED)
+			.build();
+		log.assignPayment(payment);
+		List<PaymentLogEntity> paymentLogEntities = new ArrayList<PaymentLogEntity>();
+		paymentLogEntities.add(log);
+		return paymentLogEntities;
 	}
 }
