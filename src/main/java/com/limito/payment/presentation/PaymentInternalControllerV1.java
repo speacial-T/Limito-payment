@@ -43,9 +43,9 @@ public class PaymentInternalControllerV1 {
 
 	@GetMapping("/{orderId}")
 	public ResponseEntity<PaymentDetailDtoV1> getPaymentByOrderId(
-		@PathVariable("orderId") String orderId
+		@PathVariable("orderId") UUID orderId
 	) {
-		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(UUID.fromString(orderId));
+		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(orderId);
 		return ResponseEntity.ok(paymentDto);
 	}
 }

@@ -3,7 +3,6 @@ package com.limito.payment.presentation;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -67,9 +66,9 @@ public class PaymentControllerV1 {
 
 	@GetMapping("/{orderId}")
 	public ResponseEntity<PaymentDetailDtoV1> getPaymentByOrderId(
-		@PathVariable("orderId") String orderId
+		@PathVariable("orderId") UUID orderId
 	) {
-		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(UUID.fromString(orderId));
+		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(orderId);
 		return ResponseEntity.ok(paymentDto);
 	}
 
