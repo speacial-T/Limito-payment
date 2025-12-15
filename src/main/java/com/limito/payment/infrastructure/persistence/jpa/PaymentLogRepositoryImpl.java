@@ -1,6 +1,7 @@
 package com.limito.payment.infrastructure.persistence.jpa;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -24,5 +25,10 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
 	@Override
 	public List<PaymentLogEntity> findAllByPaymentPaymentId(UUID paymentId) {
 		return paymentLogJpaRepository.findAllByPaymentPaymentId(paymentId);
+	}
+
+	@Override
+	public Optional<Integer> findMaxRetryCountByPaymentKey(String paymentKey) {
+		return paymentLogJpaRepository.findMaxRetryCountByPaymentKey(paymentKey);
 	}
 }

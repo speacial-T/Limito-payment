@@ -4,15 +4,19 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
+import com.limito.payment.domain.dto.PaymentLogDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentMethodEnum;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.RefundStatusEnum;
+import com.limito.payment.domain.model.PaymentLogMapper;
+import com.limito.payment.presentation.dto.FailLogPaymentResponseV1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortOnePaymentMapper {
 
 	private final ObjectMapper objectMapper;
+	private final PaymentLogMapper paymentLogMapper;
 
 	public PaymentDetailDtoV1 extractExtraInfo(String json) {
 		try {
@@ -30,13 +35,6 @@ public class PortOnePaymentMapper {
 			PaymentMethodEnum method = null;
 			String status = root.path("status").asText(null);
 			String paymentKey = root.path("id").asText(null);
-			String failLog = null;
-			JsonNode failureNode = root.path("failure");
-			// TODO: refactor - if/else
-			if (!failureNode.isMissingNode() && !failureNode.isNull()) {
-				failLog = failureNode.path("reason").asText(null);
-			}
-
 			LocalDateTime approvedAt = null;
 			JsonNode paidAtNode = root.path("paidAt");
 			// TODO: refactor - if/else
@@ -94,6 +92,12 @@ public class PortOnePaymentMapper {
 				}
 				log.info("mapped easyPayProvider={} to method={}", easyPayProvider, method);
 			}
+
+			List<PaymentLogDetailDtoV1> logs =
+				List.of(paymentLogMapper.mapToPaymentConfirmLog(
+					extractFailLog(root)
+				));
+
 			return PaymentDetailDtoV1.builder()
 				.paymentStatus(convertConfirmStatus(status))
 				.paymentKey(paymentKey)
@@ -101,7 +105,7 @@ public class PortOnePaymentMapper {
 				.cardNum(cardNum)
 				.pgProvider(pgProvider)
 				.paymentMethod(method)
-				.failLog(failLog)
+				.logs(logs)
 				.approvedAt(approvedAt)
 				.build();
 
@@ -130,11 +134,10 @@ public class PortOnePaymentMapper {
 			}
 
 			// 실패한 경우 — failLog 추출
-			String failLog = extractFailLog(root);
+			// String failLog = extractFailLog(root);
 
 			return PaymentDetailDtoV1.builder()
 				.refundStatus(RefundStatusEnum.FAILED)
-				.failLog(failLog)
 				.build();
 
 		} catch (Exception e) {
@@ -142,7 +145,7 @@ public class PortOnePaymentMapper {
 
 			return PaymentDetailDtoV1.builder()
 				.refundStatus(RefundStatusEnum.FAILED)
-				.failLog("PARSE_ERROR: " + e.getMessage())
+				// .failLog("PARSE_ERROR: " + e.getMessage())
 				.build();
 		}
 	}
@@ -161,35 +164,32 @@ public class PortOnePaymentMapper {
 		};
 	}
 
-	private String extractFailLog(JsonNode root) {
+	private FailLogPaymentResponseV1 extractFailLog(JsonNode itemNode) {
 
-		String type = root.path("type").asText(null);
-		String message = root.path("message").asText(null);
-		String code = root.path("code").asText(null);
-		String status = root.path("status").asText(null);
-		String reason = root.path("reason").asText(null);
+		FailLogPaymentResponseV1.FailLogPaymentResponseV1Builder builder =
+			FailLogPaymentResponseV1.builder()
+				.paymentId(itemNode.path("paymentId").asText())
+				.pgProvider(itemNode.path("channel").path("pgProvider").asText(null))
+				.responsePayload(itemNode.toString());
 
-		StringBuilder sb = new StringBuilder();
-
-		if (type != null) {
-			sb.append("type=").append(type).append(" ");
-		}
-		if (message != null) {
-			sb.append("message=").append(message).append(" ");
-		}
-		if (code != null) {
-			sb.append("code=").append(code).append(" ");
-		}
-		if (status != null) {
-			sb.append("status=").append(status).append(" ");
-		}
-		if (reason != null) {
-			sb.append("reason=").append(reason).append(" ");
-		}
-		if (sb.isEmpty()) {
-			sb.append("UNKNOWN_FAIL_RESPONSE: ").append(root.toString());
+		// PG 레벨 실패
+		JsonNode failureNode = itemNode.get("failure");
+		if (failureNode != null && !failureNode.isNull()) {
+			return builder
+				.paymentStatus(PaymentStatusEnum.FAILED)
+				.refundStatus(RefundStatusEnum.NOT_REQUESTED)
+				.failureReason(failureNode.path("reason").asText())
+				.pgErrorCode(failureNode.path("pgCode").asText())
+				.pgErrorMessage(failureNode.path("pgMessage").asText())
+				.build();
 		}
 
-		return sb.toString().trim();
+		// PG 승인 성공 (→ 이후 서비스 실패 가능 상태)
+		return builder
+			.paymentStatus(PaymentStatusEnum.SUCCESS)
+			.refundStatus(RefundStatusEnum.NOT_REQUESTED)
+			.pgTransactionId(itemNode.path("pgTxId").asText(null))
+			.failureReason(null)
+			.build();
 	}
 }

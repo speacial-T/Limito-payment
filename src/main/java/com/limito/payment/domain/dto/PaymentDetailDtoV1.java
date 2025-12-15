@@ -26,6 +26,8 @@ public class PaymentDetailDtoV1 {
 
 	private UUID paymentId;
 
+	private Long userId;
+
 	private UUID orderId;
 
 	private PaymentStatusEnum paymentStatus;
@@ -43,8 +45,6 @@ public class PaymentDetailDtoV1 {
 	private LocalDateTime approvedAt;
 
 	private LocalDateTime refundAt;
-
-	private String failLog;
 
 	private PaymentMethodEnum paymentMethod;
 

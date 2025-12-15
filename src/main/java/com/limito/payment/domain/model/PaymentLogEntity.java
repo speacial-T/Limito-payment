@@ -32,7 +32,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "p_payment_logs")
 public class PaymentLogEntity {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name = "payment_log_id", columnDefinition = "UUID")

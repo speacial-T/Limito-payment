@@ -1,19 +1,34 @@
 package com.limito.payment.domain.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 import com.limito.payment.domain.dto.PaymentLogDetailDtoV1;
 import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.RefundStatusEnum;
+import com.limito.payment.presentation.dto.FailLogPaymentResponseV1;
 
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class PaymentLogMapper {
+	public PaymentLogDetailDtoV1 mapToPaymentConfirmLog(FailLogPaymentResponseV1 response) {
+		return PaymentLogDetailDtoV1.builder()
+			.paymentStatus(response.getPaymentStatus())
+			.refundStatus(response.getRefundStatus())
+			.paymentKey(response.getPaymentId())
+			.pgTransactionId(response.getPgTransactionId())
+			.pgProvider(response.getPgProvider())
+			.retryCount(response.getRetryCount())
+			.failureReason(response.getFailureReason())
+			.pgErrorCode(response.getPgErrorCode())
+			.pgErrorMessage(response.getPgErrorMessage())
+			.apiEndpoint(response.getApiEndpoint())
+			.requestPayload(response.getRequestPayload())
+			.responsePayload(response.getResponsePayload())
+			.build();
+	}
+
 	public PaymentLogDetailDtoV1 toDto(PaymentLogEntity entity) {
 		if (entity == null) {
 			return null;
@@ -45,7 +60,6 @@ public class PaymentLogMapper {
 		}
 
 		return PaymentLogEntity.builder()
-			.paymentLogId(dto.getPaymentLogId())
 			.payment(null)
 			.paymentStatus(dto.getPaymentStatus())
 			.refundStatus(dto.getRefundStatus())
@@ -65,14 +79,23 @@ public class PaymentLogMapper {
 			.build();
 	}
 
-	public List<PaymentLogEntity> create(PaymentEntity payment) {
+/*    public List<PaymentLogEntity> create(PaymentEntity payment) {
+        PaymentLogEntity log = PaymentLogEntity.builder()
+                .paymentStatus(PaymentStatusEnum.IN_PROGRESS)
+                .refundStatus(RefundStatusEnum.NOT_REQUESTED)
+                .build();
+        log.assignPayment(payment);
+        List<PaymentLogEntity> paymentLogEntities = new ArrayList<PaymentLogEntity>();
+        paymentLogEntities.add(log);
+        return paymentLogEntities;
+    }*/
+
+	public PaymentLogEntity create(PaymentEntity payment) {
 		PaymentLogEntity log = PaymentLogEntity.builder()
 			.paymentStatus(PaymentStatusEnum.IN_PROGRESS)
 			.refundStatus(RefundStatusEnum.NOT_REQUESTED)
 			.build();
 		log.assignPayment(payment);
-		List<PaymentLogEntity> paymentLogEntities = new ArrayList<PaymentLogEntity>();
-		paymentLogEntities.add(log);
-		return paymentLogEntities;
+		return log;
 	}
 }

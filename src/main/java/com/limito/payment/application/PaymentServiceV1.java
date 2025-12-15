@@ -181,4 +181,11 @@ public class PaymentServiceV1 {
 		return paymentRefundResponseDto;
 	}
 
+    //결제 승인 실패 기록
+    public void recordConfirmFailLog(UUID orderId, FailLogPaymentResponseV1 response) {
+        PaymentLogDetailDtoV1 logDetailDto = paymentLogMapper.mapToPaymentConfirmLog(response);
+        PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+        PaymentLogEntity logEntity = paymentLogMapper.create(payment);
+        payment.addLogs(logEntity);
+    }
 }

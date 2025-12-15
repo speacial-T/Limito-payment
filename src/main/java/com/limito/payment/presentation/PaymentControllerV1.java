@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.limito.payment.application.PaymentServiceV1;
-import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.presentation.dto.FailLogPaymentResponseV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
 import com.limito.payment.presentation.dto.request.RefundPaymentRequestV1;
@@ -36,7 +35,7 @@ public class PaymentControllerV1 {
 	@Value("${portone.channel-key}")
 	private String channelKey;
 
-	@GetMapping("/{orderId}/page")
+	@GetMapping("/pass/{orderId}/page")
 	public String showPaymentPage(
 		@PathVariable("orderId") UUID orderId,
 		Model model
@@ -53,7 +52,7 @@ public class PaymentControllerV1 {
 		return "payment/portOne"; // templates/payment/portOne.html
 	}
 
-	@PostMapping("/{paymentId}/confirm")
+	@PostMapping("/pass/{paymentId}/confirm")
 	public ResponseEntity<PaymentConfirmResponseDtoV1> confirmPayment(
 		@PathVariable("paymentId") String paymentId,
 		@RequestBody ConfirmPaymentResponseV1 response
@@ -65,21 +64,14 @@ public class PaymentControllerV1 {
 		return ResponseEntity.ok(result);
 	}
 
-	@PostMapping("/{orderId}/fail-log")
-	public ResponseEntity<FailLogPaymentResponseV1> logPayment(
+	@PostMapping("/pass/{orderId}/fail-log")
+	public ResponseEntity<Void> logPayment(
 		@PathVariable("orderId") UUID orderId,
 		@RequestBody FailLogPaymentResponseV1 response
 	) {
 		log.info("PaymentControllerV1.logPayment response= {}", response);
-		return ResponseEntity.ok(response);
-	}
-
-	@GetMapping("/{orderId}")
-	public ResponseEntity<PaymentDetailDtoV1> getPaymentByOrderId(
-		@PathVariable("orderId") String orderId
-	) {
-		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(UUID.fromString(orderId));
-		return ResponseEntity.ok(paymentDto);
+		paymentService.recordConfirmFailLog(orderId, response);
+		return ResponseEntity.ok(null);
 	}
 
 	@PostMapping("/{orderId}/refund")

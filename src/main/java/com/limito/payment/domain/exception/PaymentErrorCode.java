@@ -14,8 +14,9 @@ public enum PaymentErrorCode implements ErrorCode {
 	PAYMENT_TOTAL_PRICE_ERROR(HttpStatus.BAD_REQUEST, "총 결제 금액이 주문 상품 금액의 총합과 일치하지 않습니다."),
 	PAYMENT_CAN_NOT_CONFIRM(HttpStatus.BAD_REQUEST, "결제 확인이 불가능한 상태입니다."),
 	PAYMENT_IS_NOT_SUCCESS(HttpStatus.BAD_REQUEST, "결제 완료 상태가 아닙니다."),
-	PAYMENT_CAN_NOT_CANCEL_OR_REFUND(HttpStatus.BAD_REQUEST, "결제 완료가 아닌 결제는 결제취소/환불 할 수 없습니다"),
-	PAYMENT_CANCEL_FAILED(HttpStatus.BAD_REQUEST, "결제 취소에 실패했습니다.");
+	PAYMENT_CAN_NOT_REFUND(HttpStatus.BAD_REQUEST, "이미 환불된 결제입니다"),
+	PAYMENT_REFUND_FAILED(HttpStatus.BAD_REQUEST, "환불에 실패했습니다."),
+	PAYMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "구매한 유저/상품 판매자가 아닙니다.");
 
 	private final HttpStatus status;
 	private final String message;

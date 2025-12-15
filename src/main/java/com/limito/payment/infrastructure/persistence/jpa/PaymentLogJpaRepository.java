@@ -1,6 +1,7 @@
 package com.limito.payment.infrastructure.persistence.jpa;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,6 @@ public interface PaymentLogJpaRepository extends JpaRepository<PaymentLogEntity,
 		WHERE pl.payment.paymentId = :paymentId
 		""")
 	List<PaymentLogEntity> findAllByPaymentPaymentId(UUID paymentId);
+
+	Optional<Integer> findMaxRetryCountByPaymentKey(String paymentKey);
 }

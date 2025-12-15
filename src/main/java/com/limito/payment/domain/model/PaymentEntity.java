@@ -106,18 +106,9 @@ public class PaymentEntity {
 		});
 	}
 
-	public void addLogs(List<PaymentLogEntity> newLogs) {
-		newLogs.forEach(log -> {
-			this.logs.add(log);
-			log.assignPayment(this);
-		});
-	}
-
-	public boolean isConfirmProcessed() {
-		return paymentStatus == PaymentStatusEnum.SUCCESS
-			|| paymentStatus == PaymentStatusEnum.FAILED
-			|| paymentStatus == PaymentStatusEnum.COMPENSATING
-			|| paymentStatus == PaymentStatusEnum.REFUND;
+	public void addLogs(PaymentLogEntity newLog) {
+		this.logs.add(newLog);
+		newLog.assignPayment(this);
 	}
 
 	public void handlePgCallback(PaymentDetailDtoV1 extra) {
@@ -147,6 +138,19 @@ public class PaymentEntity {
 		}
 	}
 
+	public void validateCanCreate() {
+		if (this.paymentStatus.equals(PaymentStatusEnum.IN_PROGRESS)
+			|| this.paymentStatus.equals(PaymentStatusEnum.FAILED)) {
+			log.info("결제 완료 상태 아님");
+			throw AppException.of(PAYMENT_DUPLICATE_ORDER);
+		}
+
+		if (!this.refundStatus.equals(RefundStatusEnum.NOT_REQUESTED)) {
+			log.info("{} 상태", refundStatus);
+			throw AppException.of(PAYMENT_CAN_NOT_REFUND);
+		}
+	}
+
 	public void validateCanRefund() {
 		if (this.paymentStatus != PaymentStatusEnum.SUCCESS) {
 			log.info("결제 완료 상태 아님");
@@ -155,7 +159,7 @@ public class PaymentEntity {
 
 		if (this.refundStatus == RefundStatusEnum.REFUND) {
 			log.info("{} 상태", refundStatus);
-			throw AppException.of(PAYMENT_CAN_NOT_CANCEL_OR_REFUND);
+			throw AppException.of(PAYMENT_CAN_NOT_REFUND);
 		}
 	}
 
