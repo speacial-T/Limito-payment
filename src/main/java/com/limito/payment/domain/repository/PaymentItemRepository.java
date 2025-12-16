@@ -1,22 +1,17 @@
 package com.limito.payment.domain.repository;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.transaction.annotation.Transactional;
-
-import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
 import com.limito.payment.domain.model.PaymentItemEntity;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface PaymentItemRepository {
-	@Transactional
-	List<PaymentItemEntity> saveAll(List<PaymentItemEntity> updatedProducts);
 
-	@Transactional(readOnly = true)
-	List<PaymentItemEntity> getPaymentItems(UUID paymentId);
+    List<PaymentItemEntity> saveAll(List<PaymentItemEntity> updatedProducts);
 
-	@Transactional(readOnly = true)
-	ProductTypeEnum getProductTypeByPaymentId(UUID paymentId);
+    List<PaymentItemEntity> getPaymentItems(UUID paymentId);
+
+    ProductTypeEnum getProductTypeByPaymentId(UUID paymentId);
 
 }

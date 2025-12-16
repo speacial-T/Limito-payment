@@ -1,19 +1,14 @@
 package com.limito.payment.domain.repository;
 
-import java.util.UUID;
-
-import org.springframework.transaction.annotation.Transactional;
-
 import com.limito.payment.domain.model.PaymentEntity;
 
+import java.util.UUID;
+
 public interface PaymentRepository {
-	@Transactional(readOnly = true)
-	PaymentEntity findByOrderId(UUID orderId);
 
-	@Transactional()
-	PaymentEntity save(PaymentEntity payment);
+    PaymentEntity findByOrderId(UUID orderId);
 
-	@Transactional(readOnly = true)
-	boolean hasPaymentByOrderId(UUID orderId);
+    PaymentEntity save(PaymentEntity payment);
 
+    boolean hasPaymentByOrderId(UUID orderId);
 }
