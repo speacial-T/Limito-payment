@@ -6,11 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
 import com.limito.payment.domain.model.PaymentItemEntity;
-import com.limito.payment.domain.model.PaymentItemMapper;
-import com.limito.payment.domain.model.PaymentMapper;
 import com.limito.payment.domain.repository.PaymentItemRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,13 +17,11 @@ import lombok.RequiredArgsConstructor;
 public class PaymentItemRepositoryImpl implements PaymentItemRepository {
 
 	private final PaymentItemJpaRepository paymentItemJpaRepository;
-	private final PaymentMapper mapper;
-	private final PaymentItemMapper itemMapper;
 
 	@Transactional
 	@Override
-	public List<PaymentItemEntity> saveAll(List<PaymentItemEntity> orderItems) {
-		return paymentItemJpaRepository.saveAll(orderItems);
+	public void saveAll(List<PaymentItemEntity> orderItems) {
+		paymentItemJpaRepository.saveAll(orderItems);
 	}
 
 	@Transactional(readOnly = true)
