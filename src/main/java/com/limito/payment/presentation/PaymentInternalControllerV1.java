@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.limito.payment.application.PaymentServiceV1;
+import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.infrastructure.dto.request.CreatePaymentRequestV1;
 
 import lombok.RequiredArgsConstructor;
@@ -39,4 +41,11 @@ public class PaymentInternalControllerV1 {
 		return ResponseEntity.ok().build();
 	}
 
+	@GetMapping("/{orderId}")
+	public ResponseEntity<PaymentDetailDtoV1> getPaymentByOrderId(
+		@PathVariable("orderId") UUID orderId
+	) {
+		PaymentDetailDtoV1 paymentDto = paymentService.getPaymentInfoByOrderId(orderId);
+		return ResponseEntity.ok(paymentDto);
+	}
 }
