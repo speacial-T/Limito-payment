@@ -1,9 +1,6 @@
 server:
   port: 19097
 spring:
-  docker:
-    compose:
-      file: ../develop-environment/docker/docker-compose(12-1).yml
   application:
     name: payments-service
   datasource:
@@ -12,7 +9,7 @@ spring:
     password: postgres
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
