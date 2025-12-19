@@ -15,7 +15,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -59,9 +58,9 @@ public class PaymentLogEntity {
 	@Column(name = "idempotency_key", length = 100, unique = true)
 	String idempotencyKey;
 
-	@Column(name = "retry_count", nullable = false)
+	@Column(name = "try_count", nullable = false)
 	@Builder.Default
-	int retryCount = 0;
+	int tryCount = 0;
 
 	// 실패 정보
 	@Column(name = "failure_reason", length = 255)
@@ -73,20 +72,14 @@ public class PaymentLogEntity {
 	@Column(name = "pg_error_message", length = 500)
 	String pgErrorMessage;
 
-	// 통신 정보
-	@Column(name = "http_status")
-	Integer httpStatus;
-
 	@Column(name = "api_endpoint", length = 200)
 	String apiEndpoint;
 
 	// 요청/응답 스냅샷
-	@Lob
-	@Column(name = "request_payload")
+	@Column(name = "request_payload", columnDefinition = "TEXT")
 	String requestPayload;
 
-	@Lob
-	@Column(name = "response_payload")
+	@Column(name = "response_payload", columnDefinition = "TEXT")
 	String responsePayload;
 
 	@CreatedDate
