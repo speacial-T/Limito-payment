@@ -26,6 +26,8 @@ public class PaymentDetailDtoV1 {
 
 	private UUID paymentId;
 
+	private Long userId;
+
 	private UUID orderId;
 
 	private PaymentStatusEnum paymentStatus;
@@ -44,8 +46,6 @@ public class PaymentDetailDtoV1 {
 
 	private LocalDateTime refundAt;
 
-	private String failLog;
-
 	private PaymentMethodEnum paymentMethod;
 
 	private String cardNum;
@@ -57,4 +57,6 @@ public class PaymentDetailDtoV1 {
 	@Builder.Default
 	private List<PaymentItemDetailDtoV1> items = new ArrayList<>();
 
+	@Builder.Default
+	private List<PaymentLogDetailDtoV1> logs = new ArrayList<>();
 }

@@ -114,24 +114,63 @@
                 this.setWaitingPayment(true)
                 const paymentId = randomId()
                 console.log(paymentId);
-
-                // PortOne 결제 요청
-                const payment = await PortOne.requestPayment({
+                const paymentRequest = {
                     storeId,
                     channelKey,
                     paymentId,
-                    orderName: orderData.itemSummary, // 상품 요약 사용
-                    totalAmount: orderData.totalPrice, // 총 가격 사용
+                    orderName: orderData.itemSummary,
+                    totalAmount: orderData.totalPrice,
                     currency: "KRW",
                     payMethod: "CARD",
                     customData: {
-                        orderId: orderData.orderId, // 주문 ID를 customData에 포함
+                        orderId: orderData.orderId,
                     },
-                })
+                }
+
+                const paymentRequestJson = JSON.stringify(paymentRequest);
+                // PortOne 결제 요청
+                /*   const payment = await PortOne.requestPayment({
+                       storeId,
+                       channelKey,
+                       paymentId,
+                       orderName: orderData.itemSummary, // 상품 요약 사용
+                       totalAmount: orderData.totalPrice, // 총 가격 사용
+                       currency: "KRW",
+                       payMethod: "CARD",
+                       customData: {
+                           orderId: orderData.orderId, // 주문 ID를 customData에 포함
+                       },
+                   }) */
+                const payment = await PortOne.requestPayment(paymentRequestJson)
 
                 if (payment.code != null) {
                     this.setWaitingPayment(false)
                     console.log(payment)
+                    const orderId = orderData.orderId
+
+                    fetch(`/api/v1/payments/${orderId}/fail-log`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            paymentId: payment.paymentId,
+                            paymentStatus: "IN_PROGRESS",
+                            refundStatus: "NOT_REQUESTED",
+                            pgTransactionId: payment.txId,
+                            pgProvider: "TOSSPAYMENTS",
+                            retryCount: 0,
+                            failureReason: payment.pgMessage,
+                            pgErrorCode: payment.code,
+                            pgErrorMessage: payment.message,
+                            apiEndpoint: window.location.href,
+                            requestPayload: paymentRequestJson,
+                            responsePayload: payment
+                        })
+                    }).catch(error => {
+                        console.error('결제 실패 로그 전송 실패', error)
+                    })
+
                     this.openFailDialog(payment.message)
                     return
                 }

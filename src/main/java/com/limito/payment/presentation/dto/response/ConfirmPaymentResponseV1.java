@@ -16,4 +16,6 @@ import lombok.ToString;
 public class ConfirmPaymentResponseV1 {
 	private String orderId;
 	private String paymentKey;
+	private int amount;
+	private String confirmedAt;
 }
