@@ -34,7 +34,9 @@ public class PaymentLogDetailDtoV1 {
 	String pgErrorCode;
 	String pgErrorMessage;
 	String apiEndpoint;
+	@Setter
 	String requestPayload;
+	@Setter
 	String responsePayload;
 	LocalDateTime createdAt;
 

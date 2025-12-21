@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
 
+import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 import com.limito.payment.domain.model.PaymentLogEntity;
 import com.limito.payment.domain.repository.PaymentLogRepository;
 
@@ -29,12 +31,24 @@ public class PaymentLogRepositoryImpl implements PaymentLogRepository {
 	}
 
 	@Override
-	public Optional<Integer> findMaxRetryCountByPaymentKey(String paymentKey) {
-		return paymentLogJpaRepository.findMaxRetryCountByPaymentKey(paymentKey);
+	public Optional<String> findIdempotencyKey(UUID paymentId,
+		PaymentStatusEnum status,
+		RefundStatusEnum refundStatus) {
+		return paymentLogJpaRepository.findIdempotencyKeyByStatus(paymentId, status,
+			refundStatus);
+	}
+
+	@Override
+	public int findMaxTryCount(UUID paymentId,
+		PaymentStatusEnum status,
+		RefundStatusEnum refundStatus) {
+		return paymentLogJpaRepository.findMaxRetryCount(paymentId,
+			status, refundStatus);
 	}
 
 	@Override
 	public void saveAll(List<PaymentLogEntity> list) {
 		paymentLogJpaRepository.saveAll(list);
 	}
+
 }

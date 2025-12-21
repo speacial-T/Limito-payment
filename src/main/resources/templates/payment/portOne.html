@@ -126,8 +126,6 @@
                         orderId: orderData.orderId,
                     },
                 }
-
-                const paymentRequestJson = JSON.stringify(paymentRequest);
                 // PortOne 결제 요청
                 /*   const payment = await PortOne.requestPayment({
                        storeId,
@@ -141,14 +139,14 @@
                            orderId: orderData.orderId, // 주문 ID를 customData에 포함
                        },
                    }) */
-                const payment = await PortOne.requestPayment(paymentRequestJson)
+                const payment = await PortOne.requestPayment(paymentRequest)
 
                 if (payment.code != null) {
                     this.setWaitingPayment(false)
                     console.log(payment)
                     const orderId = orderData.orderId
 
-                    fetch(`/api/v1/payments/${orderId}/fail-log`, {
+                    fetch(`/api/v1/payments/pass/${orderId}/fail-log`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -164,8 +162,7 @@
                             pgErrorCode: payment.code,
                             pgErrorMessage: payment.message,
                             apiEndpoint: window.location.href,
-                            requestPayload: paymentRequestJson,
-                            responsePayload: payment
+                            requestPayload: JSON.stringify(paymentRequest)
                         })
                     }).catch(error => {
                         console.error('결제 실패 로그 전송 실패', error)
@@ -175,7 +172,7 @@
                     return
                 }
                 console.log(payment);
-                const completeResponse = await fetch(`/api/v1/payments/${payment.paymentId}/confirm`, {
+                const completeResponse = await fetch(`/api/v1/payments/pass/${payment.paymentId}/confirm`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -184,7 +181,9 @@
                         orderId: orderData.orderId,
                         paymentKey: payment.paymentId,
                         amount: payment.totalAmount,
-                        confirmedAt: payment.confirmedAt
+                        confirmedAt: payment.confirmedAt,
+                        requestPayload: JSON.stringify(paymentRequest),
+                        responsePayload: JSON.stringify(payment)
                     }),
                 })
 

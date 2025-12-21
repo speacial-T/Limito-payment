@@ -20,7 +20,7 @@ public class FailLogPaymentResponseV1 {
 	private RefundStatusEnum refundStatus;
 	private String pgTransactionId;
 	private String pgProvider;
-	private int retryCount;
+	private int tryCount;
 	private String failureReason;
 	private String pgErrorCode;
 	private String pgErrorMessage;
