@@ -3,6 +3,7 @@ package com.limito.payment.application;
 import static com.limito.payment.domain.exception.PaymentErrorCode.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.limito.common.exception.AppException;
+import com.limito.common.security.context.UserContext;
 import com.limito.payment.domain.dto.PaymentDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentItemDetailDtoV1;
 import com.limito.payment.domain.dto.PaymentLogDetailDtoV1;
@@ -134,13 +136,17 @@ public class PaymentServiceV1 {
 		log.info("[confirmPayment] paymentKey={}, orderId={}", paymentKey, response.getOrderId());
 		UUID orderId = UUID.fromString(response.getOrderId());
 		PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+		validatePaymentStatus(payment);
 		String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
 		PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
 		// 결제 결과 로그 기록
 		// todo:로그 기록 부분 메소드로 리팩토링
-		String idempotencyKey = String.valueOf(paymentLogRepository.findIdempotencyKey(payment.internalId(),
-			PaymentStatusEnum.IN_PROGRESS,
-			RefundStatusEnum.NOT_REQUESTED));
+		Optional<String> existingKey =
+			paymentLogRepository.findIdempotencyKey(payment.internalId(),
+				PaymentStatusEnum.IN_PROGRESS,
+				RefundStatusEnum.NOT_REQUESTED);
+		String idempotencyKey = existingKey
+			.orElse(UUID.randomUUID().toString());
 		int tryCount = paymentLogRepository.findMaxTryCount(payment.internalId(),
 			PaymentStatusEnum.IN_PROGRESS,
 			RefundStatusEnum.NOT_REQUESTED) + 1;
@@ -183,15 +189,57 @@ public class PaymentServiceV1 {
 		return paymentMapper.toDto(paymentRepository.findByOrderId(orderId));
 	}
 
+	@Transactional
+	public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) {
+
+		PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+		payment.validateCanRefund();
+		// 환불 시도 로그 기록.
+		// todo 로그 기록 보완
+		PaymentLogEntity logEntity = paymentLogMapper.createRefundLog(payment, request.getRefundReason());
+		logEntity = paymentLogRepository.save(logEntity);
+
+		PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
+
+		String rawJson = portOneWebClient.refundPayment(detailDtoV1.getPaymentKey(), request.getRefundReason());
+		PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
+		// 환불 결과 로그 기록.
+		PaymentLogEntity addRefundLogEntity = paymentLogMapper.addRefundLog(logEntity, result);
+		addRefundLogEntity = paymentLogRepository.save(addRefundLogEntity);
+
+		log.info("Payment refund successful for orderId={}, refundAt={}, reason={}", orderId,
+			result.getRefundAt(), request.getRefundReason());
+
+		payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus());
+		PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
+
+		if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
+			ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());
+			try {
+				if (type == ProductTypeEnum.LIMITED) {
+					orderClient.notifyPaymentRefundLimitedSuccess(orderId, paymentRefundResponseDto);
+				} else {
+					orderClient.notifyPaymentRefundResellSuccess(orderId, paymentRefundResponseDto);
+				}
+			} catch (AppException e) {
+				throw AppException.of(HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
+			}
+		}
+		return paymentRefundResponseDto;
+	}
+
 	//결제 승인 실패 기록
 	@Transactional
 	public void recordConfirmFailLog(UUID orderId, FailLogPaymentResponseV1 response) {
 		PaymentLogDetailDtoV1 logDetailDto = paymentLogMapper.mapFailLogToPaymentConfirmLog(response);
 		log.info("logDetailDto={}", logDetailDto);
 		PaymentEntity payment = paymentRepository.findByOrderId(orderId);
-		String idempotencyKey = String.valueOf(paymentLogRepository.findIdempotencyKey(payment.internalId(),
-			PaymentStatusEnum.IN_PROGRESS,
-			RefundStatusEnum.NOT_REQUESTED));
+		Optional<String> existingKey =
+			paymentLogRepository.findIdempotencyKey(payment.internalId(),
+				PaymentStatusEnum.IN_PROGRESS,
+				RefundStatusEnum.NOT_REQUESTED);
+		String idempotencyKey = existingKey
+			.orElse(UUID.randomUUID().toString());
 		logDetailDto.setIdempotencyKey(idempotencyKey);
 		int tryCount = paymentLogRepository.findMaxTryCount(payment.internalId(),
 			PaymentStatusEnum.IN_PROGRESS,
@@ -200,5 +248,27 @@ public class PaymentServiceV1 {
 		log.info("logDetailDto={}", logDetailDto);
 		PaymentLogEntity logEntity = paymentLogMapper.addConfirmLog(payment, logDetailDto);
 		paymentLogRepository.save(logEntity);
+	}
+
+	public void userValidation(UUID orderId, UserContext user) {
+		PaymentDetailDtoV1 detailDtoV1 = getPaymentInfoByOrderId(orderId);
+		if (!detailDtoV1.getUserId().equals(user.getUserId())) {
+			throw AppException.of(PAYMENT_REFUND_FAILED);
+		}
+	}
+
+	private boolean isFinalStatus(PaymentStatusEnum status) {
+		return status == PaymentStatusEnum.SUCCESS
+			|| status == PaymentStatusEnum.FAILED
+			|| status == PaymentStatusEnum.REFUND;
+	}
+
+	private void validatePaymentStatus(PaymentEntity payment) {
+		PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
+		if (isFinalStatus(detailDtoV1.getPaymentStatus())) {
+			log.info("skip confirm: payment already final. paymentId={}, status={}",
+				detailDtoV1.getPaymentId(), detailDtoV1.getPaymentStatus());
+			throw AppException.of(PAYMENT_CAN_NOT_CONFIRM);
+		}
 	}
 }
