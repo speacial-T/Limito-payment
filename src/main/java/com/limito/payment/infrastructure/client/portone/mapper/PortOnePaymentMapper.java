@@ -88,7 +88,7 @@ public class PortOnePaymentMapper {
 			}
 
 			List<PaymentLogDetailDtoV1> logs =
-				List.of(paymentLogMapper.mapToPaymentConfirmLog(
+				List.of(paymentLogMapper.mapFailLogToPaymentConfirmLog(
 					extractFailLog(root)
 				));
 

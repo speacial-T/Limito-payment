@@ -15,9 +15,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         show_sql: false
-        type:
-          descriptor:
-            sql: trace
     open-in-view: false
   thymeleaf:
     prefix: classpath:/templates/
@@ -50,7 +47,7 @@ logging:
     com.limito.payment: INFO
     #    org.springframework.web: error
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
 feign:
   order-service:
     url: http://localhost:19096

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.limito.payment.domain.enums.PaymentStatusEnum;
+import com.limito.payment.domain.enums.RefundStatusEnum;
 import com.limito.payment.domain.model.PaymentLogEntity;
 
 public interface PaymentLogRepository {
@@ -12,7 +14,14 @@ public interface PaymentLogRepository {
 
 	List<PaymentLogEntity> findAllByPaymentPaymentId(UUID paymentId);
 
-	Optional<Integer> findMaxRetryCountByPaymentKey(String paymentKey);
+	int findMaxTryCount(UUID paymentId,
+		PaymentStatusEnum status,
+		RefundStatusEnum refundStatus);
+
+	Optional<String> findIdempotencyKey(UUID paymentId,
+		PaymentStatusEnum status,
+		RefundStatusEnum refundStatus);
 
 	void saveAll(List<PaymentLogEntity> list);
+
 }

@@ -42,7 +42,6 @@ public class PaymentLogMapper {
 		return PaymentLogDetailDtoV1.builder()
 			.paymentKey(response.getPaymentKey())
 			.requestPayload(response.getRequestPayload())
-			.responsePayload(response.getResponsePayload())
 			.build();
 	}
 

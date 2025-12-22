@@ -18,4 +18,5 @@ public class ConfirmPaymentResponseV1 {
 	private String paymentKey;
 	private int amount;
 	private String confirmedAt;
+	private String requestPayload;
 }

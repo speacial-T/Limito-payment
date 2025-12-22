@@ -43,7 +43,7 @@ public class PortOneClient {
 		return response;
 	}
 
-	public String cancelPayment(String paymentId, String reason) {
+	public String refundPayment(String paymentId, String reason) {
 
 		Map<String, Object> requestBody = new HashMap<>();
 		requestBody.put("storeId", storeId.trim());
