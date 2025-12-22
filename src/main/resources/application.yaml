@@ -34,7 +34,7 @@ eureka:
     fetch-registry: true # 레지스트리 정보를 가져오지 않음
     register-with-eureka: true # Eureka에 이 서비스를 등록하지 않음
     service-url:
-      defaultZone: http://3.35.54.33:19090/eureka/
+      defaultZone: http://43.203.224.87:19090/eureka/
 # 포트원 설정
 portone:
   channel-key: ${PORTONE_CHANNEL_KEY}
