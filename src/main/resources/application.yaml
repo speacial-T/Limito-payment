@@ -50,4 +50,4 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
 feign:
   order-service:
-    url: http://localhost:19096
+    url: ${ORDER_URL:http://localhost:19096}
