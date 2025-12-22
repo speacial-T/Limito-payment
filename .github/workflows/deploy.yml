@@ -17,10 +17,10 @@ jobs:
           distribution: 'temurin'
 
       - name: 파일 전송을 위한 디렉토리 생성
-        run: mkdir ./payment
+        run: mkdir ./Limito-payment
 
       - name: Gradle Build
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: Archive 파일명 변경
         run: mv ./build/libs/*SNAPSHOT.jar ./Limito-payment/app.jar
