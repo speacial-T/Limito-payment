@@ -1,5 +1,9 @@
 package com.limito.payment.presentation;
 
+import com.limito.common.security.audit.UserRole;
+import com.limito.common.security.auth.CurrentUser;
+import com.limito.common.security.auth.PreAuthorized;
+import com.limito.common.security.context.UserContext;
 import com.limito.payment.application.PaymentServiceV1;
 import com.limito.payment.domain.dto.PaymentLogDetailDtoV1;
 import com.limito.payment.presentation.dto.request.PortOneConfirmPaymentRequest;
@@ -73,12 +77,14 @@ public class PaymentControllerV1 {
     @PostMapping("/{orderId}/refund")
     public ResponseEntity<Void> refundPayment(
             @PathVariable UUID orderId,
-            @RequestBody RefundPaymentRequestV1 request) {
-        
+            @RequestBody RefundPaymentRequestV1 request,
+            @CurrentUser UserContext user) {
+        paymentService.userValidation(orderId, user);
         PaymentRefundResponseDtoV1 responseDtoV1 = paymentService.refundPayment(orderId, request);
         return ResponseEntity.ok(null);
     }
 
+    @PreAuthorized({UserRole.ADMIN})
     @GetMapping("/{orderId}")
     public ResponseEntity<List<PaymentLogDetailDtoV1>> getPaymentByOrderId(
             @PathVariable("orderId") UUID orderId
