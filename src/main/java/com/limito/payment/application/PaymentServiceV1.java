@@ -201,11 +201,13 @@ public class PaymentServiceV1 {
                 result.getRefundAt(), request.getRefundReason());
 
         payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus());
-        PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
-
+        paymentRepository.save(payment);
         // 환불 결과 로그 기록.
         PaymentLogEntity addRefundLogEntity = paymentLogMapper.addRefundLog(logEntity, result);
+        log.info("addRefundLogEntity={}", addRefundLogEntity);
         addRefundLogEntity = paymentLogRepository.save(addRefundLogEntity);
+        PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
+
         if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
             ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(detailDtoV1.getPaymentId());
             try {
@@ -218,7 +220,7 @@ public class PaymentServiceV1 {
                 throw AppException.of(HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
             }
         }
-        return paymentRefundResponseDto;
+        return null;
     }
 
     //결제 승인 실패 기록
@@ -263,5 +265,13 @@ public class PaymentServiceV1 {
                     detailDtoV1.getPaymentId(), detailDtoV1.getPaymentStatus());
             throw AppException.of(PAYMENT_CAN_NOT_CONFIRM);
         }
+    }
+
+    public List<PaymentLogDetailDtoV1> getPaymentLogByOrderIdForAdmin(UUID orderId) {
+        PaymentDetailDtoV1 payment = getPaymentInfoByOrderId(orderId);
+        List<PaymentLogEntity> logs = paymentLogRepository.findAllByPaymentPaymentId(payment.getPaymentId());
+        return logs.stream()
+                .map(paymentLogMapper::toDto)
+                .toList();
     }
 }

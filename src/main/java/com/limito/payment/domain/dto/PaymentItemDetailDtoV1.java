@@ -1,17 +1,9 @@
 package com.limito.payment.domain.dto;
 
-import java.util.UUID;
-
-import com.limito.payment.domain.enums.PaymentStatusEnum;
 import com.limito.payment.domain.enums.ProductTypeEnum;
-import com.limito.payment.domain.enums.RefundStatusEnum;
+import lombok.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,13 +12,11 @@ import lombok.ToString;
 @Setter
 @ToString
 public class PaymentItemDetailDtoV1 {
-	RefundStatusEnum refundStatus;
-	private UUID paymentItemId;
-	private Long sellerId;
-	private UUID orderItemId;
-	private ProductTypeEnum productType;
-	private String productName;
-	private int productPrice;
-	private int productAmount;
-	private Integer refundPrice;
+    private UUID paymentItemId;
+    private Long sellerId;
+    private UUID orderItemId;
+    private ProductTypeEnum productType;
+    private String productName;
+    private int productPrice;
+    private int productAmount;
 }
