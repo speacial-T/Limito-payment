@@ -59,9 +59,11 @@ public class PaymentServiceV1 {
             UUID orderId
     ) {
         PortOneConfirmPaymentRequest request = new PortOneConfirmPaymentRequest();
-        PaymentDetailDtoV1 payment = paymentMapper.toDto(paymentRepository.findByOrderId(orderId));
+        PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+        validatePaymentStatus(payment);
+        PaymentDetailDtoV1 paymentDto = paymentMapper.toDto(payment);
 
-        List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(payment.getPaymentId())
+        List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(paymentDto.getPaymentId())
                 .stream()
                 .map(paymentItemMapper::toDto)
                 .toList();
@@ -76,9 +78,9 @@ public class PaymentServiceV1 {
                 .toList();
 
         request.setOrderId(orderId);
-        request.setItemSummary(payment.getItemSummary());
+        request.setItemSummary(paymentDto.getItemSummary());
         request.setItems(items);
-        request.setTotalPrice(payment.getTotalPrice());
+        request.setTotalPrice(paymentDto.getTotalPrice());
 
         return request;
     }
@@ -129,7 +131,7 @@ public class PaymentServiceV1 {
         log.info("[confirmPayment] paymentKey={}, orderId={}", paymentKey, response.getOrderId());
         UUID orderId = UUID.fromString(response.getOrderId());
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
-        validatePaymentStatus(payment);
+
         String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
         PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
 
@@ -183,9 +185,10 @@ public class PaymentServiceV1 {
     }
 
     @Transactional
-    public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) {
+    public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) throws AppException {
 
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+        validatePaymentStatus(payment);
         payment.validateCanRefund();
         // 환불 시도 로그 기록.
         // todo 로그 기록 보완
