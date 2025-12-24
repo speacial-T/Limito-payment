@@ -74,6 +74,7 @@ public class PaymentMapper {
         PaymentDetailDtoV1.PaymentDetailDtoV1Builder builder = PaymentDetailDtoV1.builder()
                 .paymentId(entity.paymentId)
                 .orderId(entity.orderId)
+                .userId(entity.getCreatedBy())
                 .paymentStatus(entity.paymentStatus)
                 .paymentKey(entity.paymentKey)
                 .itemSummary(entity.itemSummary)

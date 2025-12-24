@@ -137,19 +137,19 @@ public class PaymentServiceV1 {
         boolean isLimited = (type == ProductTypeEnum.LIMITED);
         //주문 서비스로 결과 전달
         // TODO: refactor - if/else
-		/*if (extra.getPaymentStatus() == PaymentStatusEnum.SUCCESS) { //결제 성공
-			if (isLimited) { //한정상품
-				orderClient.notifyPaymentLimitedSuccess(orderId);
-			} else { //리셀상품
-				orderClient.notifyPaymentResellSuccess(orderId);
-			}
-		} else { //결제 실패
-			if (isLimited) {
-				orderClient.notifyLimitedPaymentFail(orderId);
-			} else {
-				orderClient.notifyResellPaymentFail(orderId);
-			}
-		}*/
+        if (extra.getPaymentStatus() == PaymentStatusEnum.SUCCESS) { //결제 성공
+            if (isLimited) { //한정상품
+                orderClient.notifyPaymentLimitedSuccess(orderId);
+            } else { //리셀상품
+                orderClient.notifyPaymentResellSuccess(orderId);
+            }
+        } else { //결제 실패
+            if (isLimited) {
+                orderClient.notifyLimitedPaymentFail(orderId);
+            } else {
+                orderClient.notifyResellPaymentFail(orderId);
+            }
+        }
         // 결제 완료/실패 등 상태 반영
         payment.handlePgCallback(extra);
         log.info("payment = {} ", payment);
