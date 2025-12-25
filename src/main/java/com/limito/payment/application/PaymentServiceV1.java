@@ -60,7 +60,7 @@ public class PaymentServiceV1 {
     ) {
         PortOneConfirmPaymentRequest request = new PortOneConfirmPaymentRequest();
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
-        validatePaymentStatus(payment);
+        payment.validateCanCreate();
         PaymentDetailDtoV1 paymentDto = paymentMapper.toDto(payment);
 
         List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(paymentDto.getPaymentId())
@@ -131,7 +131,7 @@ public class PaymentServiceV1 {
         log.info("[confirmPayment] paymentKey={}, orderId={}", paymentKey, response.getOrderId());
         UUID orderId = UUID.fromString(response.getOrderId());
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
-
+        payment.validateCanConfirm();
         String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
         PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
 
@@ -188,7 +188,6 @@ public class PaymentServiceV1 {
     public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) throws AppException {
 
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
-        validatePaymentStatus(payment);
         payment.validateCanRefund();
         // 환불 시도 로그 기록.
         // todo 로그 기록 보완
@@ -255,20 +254,6 @@ public class PaymentServiceV1 {
         }
     }
 
-    private boolean isFinalStatus(PaymentStatusEnum status) {
-        return status == PaymentStatusEnum.SUCCESS
-                || status == PaymentStatusEnum.FAILED
-                || status == PaymentStatusEnum.REFUND;
-    }
-
-    private void validatePaymentStatus(PaymentEntity payment) {
-        PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
-        if (isFinalStatus(detailDtoV1.getPaymentStatus())) {
-            log.info("skip confirm: payment already final. paymentId={}, status={}",
-                    detailDtoV1.getPaymentId(), detailDtoV1.getPaymentStatus());
-            throw AppException.of(PAYMENT_CAN_NOT_CONFIRM);
-        }
-    }
 
     public List<PaymentLogDetailDtoV1> getPaymentLogByOrderIdForAdmin(UUID orderId) {
         PaymentDetailDtoV1 payment = getPaymentInfoByOrderId(orderId);

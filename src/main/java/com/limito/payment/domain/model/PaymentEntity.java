@@ -135,7 +135,7 @@ public class PaymentEntity extends BaseEntity {
         }
 
         if (this.refundStatus == RefundStatusEnum.REFUND) {
-            log.info("{} 상태", refundStatus);
+            log.info("이미 환불 상태", refundStatus);
             throw AppException.of(PAYMENT_CAN_NOT_REFUND);
         }
     }
@@ -146,5 +146,19 @@ public class PaymentEntity extends BaseEntity {
         this.refundStatus = refundStatus;
         this.paymentStatus = PaymentStatusEnum.REFUND;
         this.refundAt = refundAt;
+    }
+
+    private boolean isFinalStatus(PaymentStatusEnum status) {
+        return status == PaymentStatusEnum.SUCCESS
+                || status == PaymentStatusEnum.FAILED
+                || status == PaymentStatusEnum.REFUND;
+    }
+
+    public void validateCanConfirm() {
+        if (isFinalStatus(this.paymentStatus)) {
+            log.info("skip confirm: payment already final. paymentId={}, status={}",
+                    this.paymentId, this.paymentStatus);
+            throw AppException.of(PAYMENT_CAN_NOT_CONFIRM);
+        }
     }
 }
