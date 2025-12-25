@@ -23,12 +23,12 @@ public class PaymentMapper {
     private final PaymentItemMapper itemMapper;
     private final PaymentLogMapper logMapper;
 
-    public static PaymentEntity create(UUID orderId, CreatePaymentRequestV1 request) {
+    public static PaymentEntity create(UUID orderId, CreatePaymentRequestV1 request, Long userId) {
         return new PaymentEntity(
                 null, orderId, PaymentStatusEnum.IN_PROGRESS,
                 null, request.getItemSummary(), request.getTotalPrice(),
                 null, RefundStatusEnum.NOT_REQUESTED, null, null, null,
-                null, null, null, new ArrayList<>()
+                null, null, null, new ArrayList<>(), userId
         );
     }
 
@@ -74,7 +74,7 @@ public class PaymentMapper {
         PaymentDetailDtoV1.PaymentDetailDtoV1Builder builder = PaymentDetailDtoV1.builder()
                 .paymentId(entity.paymentId)
                 .orderId(entity.orderId)
-                .userId(entity.getCreatedBy())
+                .userId(entity.userId)
                 .paymentStatus(entity.paymentStatus)
                 .paymentKey(entity.paymentKey)
                 .itemSummary(entity.itemSummary)

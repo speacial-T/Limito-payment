@@ -33,7 +33,7 @@ public class PaymentInternalControllerV1 {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(request);
         }
-        paymentService.createPayment(orderId, request);
+        paymentService.createPayment(orderId, request, user.getUserId());
         return ResponseEntity.ok().build();
     }
 

@@ -102,14 +102,14 @@ public class PaymentServiceV1 {
     }
 
     @Transactional
-    public void createPayment(UUID orderId, CreatePaymentRequestV1 request) {
+    public void createPayment(UUID orderId, CreatePaymentRequestV1 request, Long userId) {
         log.info("received createPayment for orderId={}, request={}", orderId, request);
         List<PaymentItemDetailDtoV1> paymentItems = request.getItems()
                 .stream()
                 .map(paymentItemMapper::mapToPaymentItem)
                 .toList();
         log.debug("mapped paymentItems={}", paymentItems);
-        PaymentEntity payment = PaymentMapper.create(orderId, request);
+        PaymentEntity payment = PaymentMapper.create(orderId, request, userId);
         PaymentEntity savedPayment = paymentRepository.save(payment);
 
         List<PaymentItemEntity> itemEntities = paymentItems.stream()

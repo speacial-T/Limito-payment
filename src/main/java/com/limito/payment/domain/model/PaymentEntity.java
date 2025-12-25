@@ -30,52 +30,40 @@ public class PaymentEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "payment_id", columnDefinition = "UUID")
     UUID paymentId;
-
     @Column(name = "order_id", nullable = false, columnDefinition = "UUID")
     UUID orderId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     PaymentStatusEnum paymentStatus;
-
     @Column(name = "payment_key", length = 50)
     String paymentKey;
-
     @Column(name = "item_summary", nullable = false, length = 50)
     String itemSummary;
-
     @Column(name = "total_price", nullable = false)
     Integer totalPrice;
-
     @Column(name = "refund_reason", length = 100)
     String refundReason;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "cancel_status")
     RefundStatusEnum refundStatus;
-
     @Column(name = "approved_at")
     LocalDateTime approvedAt;
-
     @Column(name = "refund_at")
     LocalDateTime refundAt;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method")
     PaymentMethodEnum paymentMethod;
-
     @Column(name = "card_num", length = 50)
     String cardNum;
-
     @Column(name = "card_name", length = 50)
     String cardName;
-
     @Column(name = "pg_provider", length = 50)
     String pgProvider;
-
     @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL)
     @Builder.Default
     List<PaymentItemEntity> items = new ArrayList<>();
+    @Column(name = "user_id", nullable = false)
+    Long userId;
 
     public UUID internalId() {
         return this.paymentId;
