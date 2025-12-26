@@ -21,20 +21,13 @@ spring:
     suffix: .html # 기본값
   config:
     import: optional:file:.env[.properties]
-#  cloud:
-#    openfeign:
-#      client:
-#        config:
-#          default:
-#            connect-timeout: 5000
-#            read-timeout: 5000
 eureka:
   client:
     enabled: true
-    fetch-registry: true # 레지스트리 정보를 가져오지 않음
-    register-with-eureka: true # Eureka에 이 서비스를 등록하지 않음
+    fetch-registry: true
+    register-with-eureka: true
     service-url:
-      defaultZone: http://43.203.224.87:19090/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:19090/eureka/}
 # 포트원 설정
 portone:
   channel-key: ${PORTONE_CHANNEL_KEY}
@@ -45,9 +38,8 @@ portone:
 logging:
   level:
     com.limito.payment: INFO
-    #    org.springframework.web: error
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 feign:
   order-service:
-    url: http://3.34.184.126:19096
+    url: ${ORDER_URL:http://localhost:19096}
