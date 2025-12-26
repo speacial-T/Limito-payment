@@ -59,9 +59,11 @@ public class PaymentServiceV1 {
             UUID orderId
     ) {
         PortOneConfirmPaymentRequest request = new PortOneConfirmPaymentRequest();
-        PaymentDetailDtoV1 payment = paymentMapper.toDto(paymentRepository.findByOrderId(orderId));
+        PaymentEntity payment = paymentRepository.findByOrderId(orderId);
+        payment.validateCanCreate();
+        PaymentDetailDtoV1 paymentDto = paymentMapper.toDto(payment);
 
-        List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(payment.getPaymentId())
+        List<PaymentItemDetailDtoV1> paymentItems = paymentItemRepository.getPaymentItems(paymentDto.getPaymentId())
                 .stream()
                 .map(paymentItemMapper::toDto)
                 .toList();
@@ -76,9 +78,9 @@ public class PaymentServiceV1 {
                 .toList();
 
         request.setOrderId(orderId);
-        request.setItemSummary(payment.getItemSummary());
+        request.setItemSummary(paymentDto.getItemSummary());
         request.setItems(items);
-        request.setTotalPrice(payment.getTotalPrice());
+        request.setTotalPrice(paymentDto.getTotalPrice());
 
         return request;
     }
@@ -87,6 +89,7 @@ public class PaymentServiceV1 {
         if (paymentRepository.hasPaymentByOrderId(orderId)) {
             log.warn("Duplicate payment request for orderId={}", orderId);
             throw AppException.of(PAYMENT_DUPLICATE_ORDER);
+
         }
         int totalCalculatedPrice = request.getItems().stream()
                 .mapToInt(item -> item.getProductPrice() * item.getQuantity())
@@ -99,14 +102,14 @@ public class PaymentServiceV1 {
     }
 
     @Transactional
-    public void createPayment(UUID orderId, CreatePaymentRequestV1 request) {
+    public void createPayment(UUID orderId, CreatePaymentRequestV1 request, Long userId) {
         log.info("received createPayment for orderId={}, request={}", orderId, request);
         List<PaymentItemDetailDtoV1> paymentItems = request.getItems()
                 .stream()
                 .map(paymentItemMapper::mapToPaymentItem)
                 .toList();
         log.debug("mapped paymentItems={}", paymentItems);
-        PaymentEntity payment = PaymentMapper.create(orderId, request);
+        PaymentEntity payment = PaymentMapper.create(orderId, request, userId);
         PaymentEntity savedPayment = paymentRepository.save(payment);
 
         List<PaymentItemEntity> itemEntities = paymentItems.stream()
@@ -128,28 +131,9 @@ public class PaymentServiceV1 {
         log.info("[confirmPayment] paymentKey={}, orderId={}", paymentKey, response.getOrderId());
         UUID orderId = UUID.fromString(response.getOrderId());
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
-        validatePaymentStatus(payment);
+        payment.validateCanConfirm();
         String rawJson = portOneWebClient.getPaymentRawPaymentInfoJson(paymentKey);
         PaymentDetailDtoV1 extra = portOnePaymentMapper.extractExtraInfo(rawJson);
-        // 결제 결과 로그 기록
-        // todo:로그 기록 부분 메소드로 리팩토링
-        Optional<String> existingKey =
-                paymentLogRepository.findIdempotencyKey(payment.internalId(),
-                        PaymentStatusEnum.IN_PROGRESS,
-                        RefundStatusEnum.NOT_REQUESTED);
-        String idempotencyKey = existingKey
-                .orElse(UUID.randomUUID().toString());
-        int tryCount = paymentLogRepository.findMaxTryCount(payment.internalId(),
-                PaymentStatusEnum.IN_PROGRESS,
-                RefundStatusEnum.NOT_REQUESTED) + 1;
-        PaymentLogDetailDtoV1 confirmLogDetailDto = paymentLogMapper.mapToPaymentConfirmLog(response);
-        confirmLogDetailDto.setIdempotencyKey(idempotencyKey);
-        confirmLogDetailDto.setTryCount(tryCount);
-        confirmLogDetailDto.setRequestPayload(response.getRequestPayload());
-        confirmLogDetailDto.setResponsePayload(rawJson);
-        log.info("logDetailDto={}", confirmLogDetailDto);
-        PaymentLogEntity logEntity = paymentLogMapper.addConfirmLog(payment, confirmLogDetailDto);
-        logEntity = paymentLogRepository.save(logEntity);
 
         ProductTypeEnum type = paymentItemRepository.getProductTypeByPaymentId(payment.internalId());
         boolean isLimited = (type == ProductTypeEnum.LIMITED);
@@ -170,8 +154,27 @@ public class PaymentServiceV1 {
         }
         // 결제 완료/실패 등 상태 반영
         payment.handlePgCallback(extra);
+        log.info("payment = {} ", payment);
         paymentRepository.save(payment);
-
+        // 결제 결과 로그 기록
+        // todo:로그 기록 부분 메소드로 리팩토링
+        Optional<String> existingKey =
+                paymentLogRepository.findIdempotencyKey(payment.internalId(),
+                        PaymentStatusEnum.IN_PROGRESS,
+                        RefundStatusEnum.NOT_REQUESTED);
+        String idempotencyKey = existingKey
+                .orElse(UUID.randomUUID().toString());
+        int tryCount = paymentLogRepository.findMaxTryCount(payment.internalId(),
+                PaymentStatusEnum.IN_PROGRESS,
+                RefundStatusEnum.NOT_REQUESTED) + 1;
+        PaymentLogDetailDtoV1 confirmLogDetailDto = paymentLogMapper.mapToPaymentConfirmLog(response);
+        confirmLogDetailDto.setIdempotencyKey(idempotencyKey);
+        confirmLogDetailDto.setTryCount(tryCount);
+        confirmLogDetailDto.setRequestPayload(response.getRequestPayload());
+        confirmLogDetailDto.setResponsePayload(rawJson);
+        log.info("logDetailDto={}", confirmLogDetailDto);
+        PaymentLogEntity logEntity = paymentLogMapper.addConfirmLog(payment, confirmLogDetailDto);
+        logEntity = paymentLogRepository.save(logEntity);
         PaymentDetailDtoV1 paymentDetail = paymentMapper.toDto(payment);
         return paymentMapper.forConfirmResponse(paymentDetail);
     }
@@ -182,7 +185,7 @@ public class PaymentServiceV1 {
     }
 
     @Transactional
-    public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) {
+    public PaymentRefundResponseDtoV1 refundPayment(UUID orderId, RefundPaymentRequestV1 request) throws AppException {
 
         PaymentEntity payment = paymentRepository.findByOrderId(orderId);
         payment.validateCanRefund();
@@ -195,14 +198,16 @@ public class PaymentServiceV1 {
 
         String rawJson = portOneWebClient.refundPayment(detailDtoV1.getPaymentKey(), request.getRefundReason());
         PaymentDetailDtoV1 result = portOnePaymentMapper.extractCancelInfo(rawJson);
-        // 환불 결과 로그 기록.
-        PaymentLogEntity addRefundLogEntity = paymentLogMapper.addRefundLog(logEntity, result);
-        addRefundLogEntity = paymentLogRepository.save(addRefundLogEntity);
 
         log.info("Payment refund successful for orderId={}, refundAt={}, reason={}", orderId,
                 result.getRefundAt(), request.getRefundReason());
 
         payment.refund(request.getRefundReason(), result.getRefundAt(), result.getRefundStatus());
+        paymentRepository.save(payment);
+        // 환불 결과 로그 기록.
+        PaymentLogEntity addRefundLogEntity = paymentLogMapper.addRefundLog(logEntity, result);
+        log.info("addRefundLogEntity={}", addRefundLogEntity);
+        addRefundLogEntity = paymentLogRepository.save(addRefundLogEntity);
         PaymentRefundResponseDtoV1 paymentRefundResponseDto = paymentMapper.forRefundResponse(detailDtoV1);
 
         if (result.getPaymentStatus() == PaymentStatusEnum.REFUND) {
@@ -217,7 +222,7 @@ public class PaymentServiceV1 {
                 throw AppException.of(HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
             }
         }
-        return paymentRefundResponseDto;
+        return null;
     }
 
     //결제 승인 실패 기록
@@ -249,18 +254,12 @@ public class PaymentServiceV1 {
         }
     }
 
-    private boolean isFinalStatus(PaymentStatusEnum status) {
-        return status == PaymentStatusEnum.SUCCESS
-                || status == PaymentStatusEnum.FAILED
-                || status == PaymentStatusEnum.REFUND;
-    }
 
-    private void validatePaymentStatus(PaymentEntity payment) {
-        PaymentDetailDtoV1 detailDtoV1 = paymentMapper.toDto(payment);
-        if (isFinalStatus(detailDtoV1.getPaymentStatus())) {
-            log.info("skip confirm: payment already final. paymentId={}, status={}",
-                    detailDtoV1.getPaymentId(), detailDtoV1.getPaymentStatus());
-            throw AppException.of(PAYMENT_CAN_NOT_CONFIRM);
-        }
+    public List<PaymentLogDetailDtoV1> getPaymentLogByOrderIdForAdmin(UUID orderId) {
+        PaymentDetailDtoV1 payment = getPaymentInfoByOrderId(orderId);
+        List<PaymentLogEntity> logs = paymentLogRepository.findAllByPaymentPaymentId(payment.getPaymentId());
+        return logs.stream()
+                .map(paymentLogMapper::toDto)
+                .toList();
     }
 }

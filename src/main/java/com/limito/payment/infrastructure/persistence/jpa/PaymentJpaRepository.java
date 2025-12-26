@@ -19,6 +19,7 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, UUID>
             """)
     boolean existsByOrderId(UUID orderId);
 
+
     @Query("SELECT p FROM PaymentEntity p JOIN FETCH p.items WHERE p.orderId = :orderId")
     Optional<PaymentEntity> findByOrderIdWithItems(@Param("orderId") UUID orderId);
 
