@@ -49,6 +49,12 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // Actuator: 애플리케이션 메트릭 수집
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Prometheus 메트릭 포맷 지원
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
 }
 
 dependencyManagement {

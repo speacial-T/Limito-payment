@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s  # 15초마다 메트릭 수집
+
+scrape_configs:
+  # Gateway 서비스 모니터링
+  - job_name: 'gateway'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:8080' ]
+
+  # Order 서비스 모니터링
+  - job_name: 'order'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:8081' ]
+
+  # Product 서비스 모니터링
+  - job_name: 'product'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:8082' ]

@@ -27,7 +27,7 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:19090/eureka/}
+      defaultZone: http://localhost:19090/eureka/
 # 포트원 설정
 portone:
   channel-key: ${PORTONE_CHANNEL_KEY}
@@ -43,4 +43,9 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
 feign:
   order-service:
-    url: ${ORDER_URL:http://localhost:19096}
+    url: http://localhost:19096
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics

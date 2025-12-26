@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s  # 15초마다 메트릭 수집
+
+scrape_configs:
+  # Gateway 서비스 모니터링
+  - job_name: 'gateway'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19091' ]
+
+  # 유저 서비스 모니터링
+  - job_name: 'user-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19092' ]
+
+  # 카테고리 서비스 모니터링
+  - job_name: 'category-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19093' ]
+
+  # 한정상품 서비스 모니터링
+  - job_name: 'limited-product-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19094' ]
+  # 리셀상품 서비스 모니터링
+  - job_name: 'resell-product-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19095' ]
+
+  # 주문 서비스 모니터링
+  - job_name: 'order-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19096' ]
+
+  # 결제 서비스 모니터링
+  - job_name: 'payments-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'host.docker.internal:19097' ]
